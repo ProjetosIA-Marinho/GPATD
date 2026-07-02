@@ -12,10 +12,63 @@ import {
   X,
   Edit2,
   FilePlus,
-  UserPlus
+  UserPlus,
+  ChevronDown
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { supabase } from '../../lib/supabase';
+
+const FilterDropdown = ({ label, value, options, onChange }: any) => {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  const handleSelect = (val: string) => {
+    setIsOpen(false);
+    onChange(val);
+  };
+  
+  return (
+    <div className="relative">
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 h-11 px-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all font-bold text-[10px] uppercase tracking-wider shadow-sm pointer-events-auto"
+      >
+        {label}: <span className="text-indigo-600 dark:text-indigo-400">{value || 'Todos'}</span>
+        <ChevronDown size={14} className={`transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            <div className="fixed inset-0 z-40 bg-black/5 dark:bg-black/10" onClick={() => setIsOpen(false)} />
+            <motion.div
+              initial={{ opacity: 0, y: 4, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 4, scale: 0.98 }}
+              transition={{ duration: 0.15 }}
+              className="absolute left-0 top-full mt-2 p-1.5 z-50 bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-100 dark:border-slate-800 min-w-[180px] max-h-64 overflow-y-auto custom-scrollbar"
+            >
+              <button 
+                onClick={() => handleSelect('')}
+                className={`w-full px-3 py-2 text-left text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all ${!value ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-500'}`}
+              >
+                Todos
+              </button>
+              {options.map((opt: string) => (
+                <button 
+                  key={opt}
+                  onClick={() => handleSelect(opt)}
+                  className={`w-full px-3 py-2 text-left text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all mt-1 ${value === opt ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-500'}`}
+                >
+                  {opt}
+                </button>
+              ))}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
 
 interface EfetivoRecord {
   saram: string;
@@ -247,6 +300,12 @@ export default function Efetivo({ currentUser, onNewPATDFromEfetivo }: { current
   const [records, setRecords] = useState<EfetivoRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterDivisao, setFilterDivisao] = useState('');
+  const [filterPosto, setFilterPosto] = useState('');
+
+  const optionsDivisao = useMemo(() => Array.from(new Set(records.map(r => r.divisao).filter(Boolean))).sort(), [records]);
+  const optionsPosto = useMemo(() => Array.from(new Set(records.map(r => r.posto).filter(Boolean))).sort(), [records]);
+
   const [modalState, setModalState] = useState<{ isOpen: boolean; record: EfetivoRecord | null; isNew: boolean }>({
     isOpen: false,
     record: null,
@@ -488,17 +547,28 @@ export default function Efetivo({ currentUser, onNewPATDFromEfetivo }: { current
 
   // Filtered Records
   const filteredRecords = useMemo(() => {
-    if (!searchTerm) return records;
-    const low = searchTerm.toLowerCase();
-    return records.filter(r => 
-      r.nome_completo.toLowerCase().includes(low) ||
-      r.saram.toLowerCase().includes(low) ||
-      r.posto.toLowerCase().includes(low) ||
-      r.quadro.toLowerCase().includes(low) ||
-      (r.especialidade || '').toLowerCase().includes(low) ||
-      (r.divisao || '').toLowerCase().includes(low)
-    );
-  }, [records, searchTerm]);
+    let result = [...records];
+
+    if (filterDivisao) {
+      result = result.filter(r => r.divisao === filterDivisao);
+    }
+    if (filterPosto) {
+      result = result.filter(r => r.posto === filterPosto);
+    }
+
+    if (searchTerm) {
+      const low = searchTerm.toLowerCase();
+      result = result.filter(r => 
+        r.nome_completo.toLowerCase().includes(low) ||
+        r.saram.toLowerCase().includes(low) ||
+        r.posto.toLowerCase().includes(low) ||
+        r.quadro.toLowerCase().includes(low) ||
+        (r.especialidade || '').toLowerCase().includes(low) ||
+        (r.divisao || '').toLowerCase().includes(low)
+      );
+    }
+    return result;
+  }, [records, searchTerm, filterDivisao, filterPosto]);
 
   return (
     <div className="space-y-8 pb-10">
@@ -521,6 +591,13 @@ export default function Efetivo({ currentUser, onNewPATDFromEfetivo }: { current
               className="h-11 w-64 rounded-xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 pl-10 pr-4 text-sm focus:outline-hidden focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all text-slate-800 dark:text-white pointer-events-auto shadow-sm"
             />
           </div>
+
+          {(currentUser?.role === 'Administrador' || currentUser?.role === 'Visualizador') && (
+            <>
+              <FilterDropdown label="Divisão" value={filterDivisao} options={optionsDivisao} onChange={setFilterDivisao} />
+              <FilterDropdown label="Posto" value={filterPosto} options={optionsPosto} onChange={setFilterPosto} />
+            </>
+          )}
 
           <button 
             onClick={downloadTemplate}
