@@ -688,19 +688,22 @@ export default function Efetivo({ currentUser, onNewPATDFromEfetivo }: { current
                     <th className="px-6 py-4 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Especialidade</th>
                     <th className="px-6 py-4 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Nome Completo</th>
                     <th className="px-6 py-4 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Divisão</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">E-mail</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Telefone</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Ramal</th>
                     <th className="px-6 py-4 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest pr-8 text-right">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
                   {isLoading ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-10 text-center text-slate-400 font-bold uppercase tracking-widest text-[10px]">
+                      <td colSpan={9} className="px-6 py-10 text-center text-slate-400 font-bold uppercase tracking-widest text-[10px]">
                         Carregando registros...
                       </td>
                     </tr>
                   ) : filteredRecords.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-10 text-center text-slate-400 font-bold uppercase tracking-widest text-[10px]">
+                      <td colSpan={9} className="px-6 py-10 text-center text-slate-400 font-bold uppercase tracking-widest text-[10px]">
                         Nenhum militar cadastrado.
                       </td>
                     </tr>
@@ -716,6 +719,9 @@ export default function Efetivo({ currentUser, onNewPATDFromEfetivo }: { current
                         </td>
                         <td className="px-6 py-4 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase">{record.nome_completo}</td>
                         <td className="px-6 py-4 text-xs font-semibold text-slate-700 dark:text-slate-350 uppercase">{record.divisao || '—'}</td>
+                        <td className="px-6 py-4 text-xs font-semibold text-slate-700 dark:text-slate-350">{record.email || '—'}</td>
+                        <td className="px-6 py-4 text-xs font-semibold text-slate-700 dark:text-slate-350 whitespace-nowrap">{record.telefone || '—'}</td>
+                        <td className="px-6 py-4 text-xs font-semibold text-slate-700 dark:text-slate-350">{record.ramal || '—'}</td>
                         <td className="px-6 py-4 pr-8 text-right">
                           <div className="flex items-center justify-end gap-1.5">
                             {onNewPATDFromEfetivo && (

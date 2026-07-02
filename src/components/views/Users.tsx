@@ -248,6 +248,42 @@ Seção de Investigação e Justiça (SIJ)`);
     ramal: ''
   });
 
+  const handleFieldBlur = async (field: 'saram' | 'nome') => {
+    const searchVal = field === 'saram' ? formData.saram : formData.name;
+    if (!searchVal) return;
+
+    try {
+      let query = supabase.from('efetivo').select('*');
+      if (loggedUser?.role === 'Operador') {
+        query = query.eq('divisao', loggedUser.divisao);
+      }
+      if (field === 'saram') {
+        query = query.eq('saram', searchVal.trim());
+      } else {
+        query = query.ilike('nome_completo', searchVal.trim());
+      }
+      
+      const { data, error } = await query.maybeSingle();
+      if (error) throw error;
+
+      if (data) {
+        setFormData((prev: any) => ({
+          ...prev,
+          saram: data.saram || prev.saram,
+          name: data.nome_completo || prev.name,
+          posto: data.posto || prev.posto,
+          divisao: data.divisao || prev.divisao,
+          email: data.email || prev.email,
+          login: data.email || prev.login,
+          telefone: data.telefone || prev.telefone,
+          ramal: data.ramal || prev.ramal
+        }));
+      }
+    } catch (err) {
+      console.error('Error fetching details from efetivo for user:', err);
+    }
+  };
+
   const optionsPosto = [
     { value: 'BR', label: 'BR' },
     { value: 'CL', label: 'CL' },
@@ -754,6 +790,7 @@ Seção de Investigação e Justiça (SIJ)`);
                             type="text" 
                             value={formData.name}
                             onChange={(e) => setFormData({...formData, name: e.target.value})}
+                            onBlur={() => handleFieldBlur('nome')}
                             className="w-full h-11 pl-10 pr-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-750 focus:bg-white dark:focus:bg-slate-800 focus:outline-hidden focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all text-sm font-medium text-slate-900 dark:text-white placeholder:text-slate-300 dark:placeholder:text-slate-600"
                             placeholder="Ex: Cap Marinho"
                           />
@@ -775,6 +812,7 @@ Seção de Investigação e Justiça (SIJ)`);
                               const val = e.target.value.replace(/\D/g, '');
                               setFormData({...formData, saram: val});
                             }}
+                            onBlur={() => handleFieldBlur('saram')}
                             className="w-full h-11 pl-10 pr-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-750 focus:bg-white dark:focus:bg-slate-800 focus:outline-hidden focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all text-sm font-medium text-slate-900 dark:text-white placeholder:text-slate-300 dark:placeholder:text-slate-600"
                             placeholder="1234567"
                           />
