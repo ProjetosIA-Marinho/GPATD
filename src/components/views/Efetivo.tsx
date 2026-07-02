@@ -24,6 +24,9 @@ interface EfetivoRecord {
   especialidade?: string;
   nome_completo: string;
   divisao?: string;
+  email?: string;
+  telefone?: string;
+  ramal?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -44,7 +47,10 @@ function EditRecordModal({ isOpen, onClose, record, onSave, currentUser, isNew }
     quadro: '',
     especialidade: '',
     nome_completo: '',
-    divisao: ''
+    divisao: '',
+    email: '',
+    telefone: '',
+    ramal: ''
   });
   const [isSaving, setIsSaving] = useState(false);
 
@@ -56,7 +62,10 @@ function EditRecordModal({ isOpen, onClose, record, onSave, currentUser, isNew }
         quadro: record.quadro || '',
         especialidade: record.especialidade || '',
         nome_completo: record.nome_completo || '',
-        divisao: record.divisao || ''
+        divisao: record.divisao || '',
+        email: record.email || '',
+        telefone: record.telefone || '',
+        ramal: record.ramal || ''
       });
     }
   }, [record]);
@@ -180,6 +189,37 @@ function EditRecordModal({ isOpen, onClose, record, onSave, currentUser, isNew }
               />
             </div>
 
+            <div>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">E-mail</label>
+              <input
+                type="email"
+                value={formData.email || ''}
+                onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                className="w-full h-11 px-4 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm font-semibold text-slate-900 dark:text-white"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Telefone</label>
+                <input
+                  type="text"
+                  value={formData.telefone || ''}
+                  onChange={e => setFormData(prev => ({ ...prev, telefone: e.target.value }))}
+                  className="w-full h-11 px-4 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm font-semibold text-slate-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Ramal</label>
+                <input
+                  type="text"
+                  value={formData.ramal || ''}
+                  onChange={e => setFormData(prev => ({ ...prev, ramal: e.target.value }))}
+                  className="w-full h-11 px-4 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm font-semibold text-slate-900 dark:text-white"
+                />
+              </div>
+            </div>
+
             <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800 mt-6">
               <button
                 type="button"
@@ -243,14 +283,17 @@ export default function Efetivo({ currentUser, onNewPATDFromEfetivo }: { current
 
   // Download Template
   const downloadTemplate = () => {
-    const headers = ['Saram', 'Posto', 'Quadro', 'Especialidade', 'Nome Completo', 'Divisao'];
+    const headers = ['Saram', 'Posto', 'Quadro', 'Especialidade', 'Nome Completo', 'Divisao', 'Email', 'Telefone', 'Ramal'];
     const exampleRow = {
       'Saram': '6543210',
       'Posto': '1T',
       'Quadro': 'QOINT',
       'Especialidade': 'BEI',
       'Nome Completo': 'FULANO DE TAL',
-      'Divisao': currentUser?.divisao || 'DOA'
+      'Divisao': currentUser?.divisao || 'DOA',
+      'Email': 'fulano.tal@fab.mil.br',
+      'Telefone': '(19) 99999-9999',
+      'Ramal': '1234'
     };
 
     const worksheet = XLSX.utils.json_to_sheet([exampleRow], { header: headers });
@@ -318,13 +361,16 @@ export default function Efetivo({ currentUser, onNewPATDFromEfetivo }: { current
           quadro: keys.find(k => normalize(k) === 'quadro'),
           especialidade: keys.find(k => normalize(k) === 'especialidade'),
           nomeCompleto: keys.find(k => normalize(k) === 'nomecompleto'),
-          divisao: keys.find(k => normalize(k) === 'divisao' || normalize(k) === 'division')
+          divisao: keys.find(k => normalize(k) === 'divisao' || normalize(k) === 'division'),
+          email: keys.find(k => normalize(k) === 'email'),
+          telefone: keys.find(k => normalize(k) === 'telefone' || normalize(k) === 'phone' || normalize(k) === 'tel'),
+          ramal: keys.find(k => normalize(k) === 'ramal' || normalize(k) === 'extension' || normalize(k) === 'ram')
         };
 
         if (!mappedKeys.saram || !mappedKeys.posto || !mappedKeys.quadro || !mappedKeys.nomeCompleto) {
           setUploadMessage({ 
             type: 'error', 
-            text: 'Cabeçalhos inválidos. A planilha deve conter as colunas: Saram, Posto, Quadro, Nome Completo (Divisao e Especialidade são opcionais)' 
+            text: 'Cabeçalhos inválidos. A planilha deve conter as colunas: Saram, Posto, Quadro, Nome Completo (Divisao, Especialidade, Email, Telefone e Ramal são opcionais)' 
           });
           setIsImporting(false);
           return;
@@ -339,7 +385,10 @@ export default function Efetivo({ currentUser, onNewPATDFromEfetivo }: { current
             quadro: String(row[mappedKeys.quadro!] || '').trim(),
             especialidade: mappedKeys.especialidade ? String(row[mappedKeys.especialidade!] || '').trim() : null,
             nome_completo: String(row[mappedKeys.nomeCompleto!] || '').trim(),
-            divisao: finalDiv
+            divisao: finalDiv,
+            email: mappedKeys.email ? String(row[mappedKeys.email!] || '').trim() : null,
+            telefone: mappedKeys.telefone ? String(row[mappedKeys.telefone!] || '').trim() : null,
+            ramal: mappedKeys.ramal ? String(row[mappedKeys.ramal!] || '').trim() : null
           };
         }).filter(row => row.saram && row.nome_completo);
 
@@ -403,7 +452,10 @@ export default function Efetivo({ currentUser, onNewPATDFromEfetivo }: { current
             posto: updated.posto,
             quadro: updated.quadro,
             especialidade: updated.especialidade || null,
-            divisao: updated.divisao || currentUser?.divisao || null
+            divisao: updated.divisao || currentUser?.divisao || null,
+            email: updated.email || null,
+            telefone: updated.telefone || null,
+            ramal: updated.ramal || null
           });
 
         if (error) throw error;
@@ -417,6 +469,9 @@ export default function Efetivo({ currentUser, onNewPATDFromEfetivo }: { current
             quadro: updated.quadro,
             especialidade: updated.especialidade || null,
             divisao: updated.divisao || null,
+            email: updated.email || null,
+            telefone: updated.telefone || null,
+            ramal: updated.ramal || null,
             updated_at: new Date().toISOString()
           })
           .eq('saram', updated.saram);

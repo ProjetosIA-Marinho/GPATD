@@ -1563,7 +1563,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
     
     // Check if there is an autosaved version in localStorage
     try {
-      const saved = localStorage.getItem(key);
+      const saved = !initialData?._isPrefilledNew ? localStorage.getItem(key) : null;
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed && typeof parsed === 'object') {
@@ -1592,7 +1592,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
           saram: initialData.saram || '',
           nomeCompleto: initialData.militar || '',
           especialidade: initialData.especialidade || '',
-          divisao: currentUser?.divisao || prev.divisao || 'DOA'
+          divisao: initialData.divisao || currentUser?.divisao || prev.divisao || 'DOA'
         }));
       } else {
         setFormData({
@@ -2838,14 +2838,14 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                 <p className="text-[10px] font-black text-indigo-500 uppercase tracking-wider ml-1">Identificação do Aplicador</p>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                   <div className="md:col-span-2">
-                    <AutocompleteInputField label="Autoridade Aplicadora" icon={User} value={formData.aplicador} onChange={handleChange('aplicador')} fieldName="aplicador" />
+                    <AutocompleteInputField label="Autoridade Aplicadora" icon={User} value={formData.aplicador} onChange={handleChange('aplicador')} fieldName="aplicador" disabled={currentUser?.role === 'Apurador'} />
                   </div>
-                  <SelectField label="Posto (Aplicador)" icon={Shield} value={formData.aplicadorPosto} onChange={handleChange('aplicadorPosto')} options={optionsPosto} />
-                  <SelectField label="Quadro (Aplicador)" icon={Briefcase} value={formData.aplicadorQuadro} onChange={handleChange('aplicadorQuadro')} options={optionsQuadro} />
+                  <SelectField label="Posto (Aplicador)" icon={Shield} value={formData.aplicadorPosto} onChange={handleChange('aplicadorPosto')} options={optionsPosto} disabled={currentUser?.role === 'Apurador'} />
+                  <SelectField label="Quadro (Aplicador)" icon={Briefcase} value={formData.aplicadorQuadro} onChange={handleChange('aplicadorQuadro')} options={optionsQuadro} disabled={currentUser?.role === 'Apurador'} />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                   <div className="md:col-span-2">
-                    <AutocompleteInputField label="Cargo (Aplicador)" icon={Briefcase} value={formData.aplicadorCargo} onChange={handleChange('aplicadorCargo')} placeholder="Ex: Comandante, Chefe de Divisão, etc." fieldName="aplicadorCargo" />
+                    <AutocompleteInputField label="Cargo (Aplicador)" icon={Briefcase} value={formData.aplicadorCargo} onChange={handleChange('aplicadorCargo')} placeholder="Ex: Comandante, Chefe de Divisão, etc." fieldName="aplicadorCargo" disabled={currentUser?.role === 'Apurador'} />
                   </div>
                   <div className="hidden md:block md:col-span-2" />
                 </div>
@@ -2904,8 +2904,8 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
               <TextAreaField label="Resumo da Punição" value={formData.resumoPunicao} onChange={handleChange('resumoPunicao')} />
               
               <div className="grid grid-cols-2 gap-4">
-                <InputField label="N da Grade" icon={FileText} value={formData.nGrade} onChange={handleChange('nGrade')} />
-                <InputField label="Boletim" icon={FileText} value={formData.boletim} onChange={handleChange('boletim')} />
+                <InputField label="N da Grade" icon={FileText} value={formData.nGrade} onChange={handleChange('nGrade')} disabled={currentUser?.role === 'Apurador'} />
+                <InputField label="Boletim" icon={FileText} value={formData.boletim} onChange={handleChange('boletim')} disabled={currentUser?.role === 'Apurador'} />
               </div>
 
               <TextAreaField label="Observações" value={formData.observacoes} onChange={handleChange('observacoes')} />

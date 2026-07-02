@@ -390,11 +390,10 @@ export default function Dashboard({
                     <LayoutDashboard size={14} />
                   </div>
                 </div>
-                <div 
+                 <div 
                   className="space-y-4 max-h-[220px] overflow-y-auto pr-2 custom-scrollbar"
-                  onScroll={(e) => handleScroll(e, setVisibleDivisions, divisionData.length)}
                 >
-                  {divisionData.slice(0, visibleDivisions).map((div, i) => (
+                  {divisionData.map((div, i) => (
                     <div key={div.name} className="space-y-1.5" onClick={() => setActiveTab('processos', '')}>
                       <div className="flex items-center justify-between text-[11px] font-bold">
                         <span className="text-slate-600 dark:text-slate-400 group-hover:text-indigo-500 transition-colors">{div.name}</span>
@@ -402,18 +401,15 @@ export default function Dashboard({
                       </div>
                       <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                         <motion.div 
-                          initial={{ width: 0 }}
-                          whileInView={{ width: `${(div.val / 50) * 100}%` }}
-                          viewport={{ once: true }}
-                          transition={{ duration: 1, delay: i * 0.05 }}
-                          className={`h-full ${div.color} rounded-full`} 
+                           initial={{ width: 0 }}
+                           whileInView={{ width: `${(div.val / 50) * 100}%` }}
+                           viewport={{ once: true }}
+                           transition={{ duration: 1, delay: i * 0.05 }}
+                           className={`h-full ${div.color} rounded-full`} 
                         />
                       </div>
                     </div>
                   ))}
-                  {visibleDivisions < divisionData.length && (
-                    <div className="py-2 text-center text-[10px] text-slate-400 font-bold animate-pulse">Role para carregar mais...</div>
-                  )}
                 </div>
               </div>
             </ParallaxCard>

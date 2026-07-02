@@ -465,6 +465,7 @@ export default function App() {
             posto: military.posto,
             quadro: military.quadro,
             especialidade: military.especialidade || '',
+            divisao: military.divisao || '',
             _isPrefilledNew: true
           });
           setActiveTab('novo-patd');
