@@ -13,7 +13,8 @@ import {
   Edit2,
   FilePlus,
   UserPlus,
-  ChevronDown
+  ChevronDown,
+  UserCog
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { supabase } from '../../lib/supabase';
@@ -296,7 +297,7 @@ function EditRecordModal({ isOpen, onClose, record, onSave, currentUser, isNew }
   );
 }
 
-export default function Efetivo({ currentUser, onNewPATDFromEfetivo }: { currentUser: any, onNewPATDFromEfetivo?: (record: EfetivoRecord) => void }) {
+export default function Efetivo({ currentUser, onNewPATDFromEfetivo, onNewUserFromEfetivo }: { currentUser: any, onNewPATDFromEfetivo?: (record: EfetivoRecord) => void, onNewUserFromEfetivo?: (record: EfetivoRecord) => void }) {
   const [records, setRecords] = useState<EfetivoRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -731,6 +732,15 @@ export default function Efetivo({ currentUser, onNewPATDFromEfetivo }: { current
                                 title="Criar Novo PATD"
                               >
                                 <FilePlus size={14} />
+                              </button>
+                            )}
+                            {onNewUserFromEfetivo && (
+                              <button
+                                onClick={() => onNewUserFromEfetivo(record)}
+                                className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-all"
+                                title="Criar Apurador"
+                              >
+                                <UserCog size={14} />
                               </button>
                             )}
                             <button

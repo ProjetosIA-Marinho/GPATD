@@ -55,6 +55,8 @@ interface UsersProps {
   globalSearchTerm?: string;
   isAdmin?: boolean;
   loggedUser?: User;
+  initialPrefill?: any;
+  onClearPrefill?: () => void;
 }
 
 const SelectField = ({ label, icon: Icon, value, onChange, options, placeholder = "Selecionar", direction = "down" }: any) => {
@@ -144,7 +146,7 @@ const SelectField = ({ label, icon: Icon, value, onChange, options, placeholder 
   );
 };
 
-export default function Users({ users, setUsers, divisions, globalSearchTerm = '', isAdmin = true, loggedUser }: UsersProps) {
+export default function Users({ users, setUsers, divisions, globalSearchTerm = '', isAdmin = true, loggedUser, initialPrefill, onClearPrefill }: UsersProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState<string>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -182,6 +184,27 @@ Seção de Investigação e Justiça (SIJ)`);
       setSendingLogs([]);
     }
   }, [isBulkEmailModalOpen, operatorsWithEmail]);
+
+  React.useEffect(() => {
+    if (initialPrefill) {
+      setFormData({
+        name: initialPrefill.name || '',
+        posto: initialPrefill.posto || '',
+        saram: initialPrefill.saram || '',
+        divisao: initialPrefill.divisao || '',
+        role: initialPrefill.role || 'Apurador',
+        status: initialPrefill.status || 'Ativo',
+        email: initialPrefill.email || '',
+        login: initialPrefill.email || '',
+        senha: '',
+        telefone: initialPrefill.telefone || '',
+        ramal: initialPrefill.ramal || ''
+      });
+      setCurrentUser(null);
+      setIsModalOpen(true);
+      if (onClearPrefill) onClearPrefill();
+    }
+  }, [initialPrefill, onClearPrefill]);
 
   const handleStartSending = () => {
     setBulkStep(3);

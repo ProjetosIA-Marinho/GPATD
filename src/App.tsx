@@ -210,6 +210,7 @@ export default function App() {
     };
   }, [session]);
   const [editingProcess, setEditingProcess] = useState<any>(null);
+  const [prefilledNewUser, setPrefilledNewUser] = useState<any>(null);
   const [processFilter, setProcessFilter] = useState<string>('');
 
 
@@ -448,7 +449,7 @@ export default function App() {
       case 'divisoes':
         return <Divisions divisions={divisions} setDivisions={setDivisions} isAdmin={currentUser.role === 'Administrador'} globalSearchTerm={searchTerm} />;
       case 'usuarios':
-        return <Users users={users} setUsers={setUsers} divisions={divisions} globalSearchTerm={searchTerm} isAdmin={currentUser.role === 'Administrador'} loggedUser={currentUser} />;
+        return <Users users={users} setUsers={setUsers} divisions={divisions} globalSearchTerm={searchTerm} isAdmin={currentUser.role === 'Administrador'} loggedUser={currentUser} initialPrefill={prefilledNewUser} onClearPrefill={() => setPrefilledNewUser(null)} />;
       case 'relatorio':
         return <Reports processes={processes} globalSearchTerm={searchTerm} currentUser={currentUser} />;
       case 'chat':
@@ -469,6 +470,19 @@ export default function App() {
             _isPrefilledNew: true
           });
           setActiveTab('novo-patd');
+        }} onNewUserFromEfetivo={(military) => {
+          setPrefilledNewUser({
+            saram: military.saram,
+            name: military.nome_completo,
+            posto: military.posto,
+            divisao: military.divisao || '',
+            email: military.email || '',
+            telefone: military.telefone || '',
+            ramal: military.ramal || '',
+            role: 'Apurador',
+            status: 'Ativo'
+          });
+          setActiveTab('usuarios');
         }} />;
       case 'settings':
         return <Settings currentUser={currentUser} onProfileUpdate={(updated) => setUsers(prev => prev.map(u => u.id === updated.id ? updated : u))} />;
