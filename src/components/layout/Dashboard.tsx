@@ -240,7 +240,7 @@ export default function Dashboard({
   }));
 
   // Dynamic Rank Data
-  const rankOrder = ['S2', 'S1', 'CB', '3S', '2S', '1S', 'SO', 'CD', 'ASP', '2T', '1T', 'CAP', 'MAJ', 'TC', 'CEL'];
+  const rankOrder = ['S2', 'T2', 'T1', 'S1', 'CB', '3S', '2S', '1S', 'SO', 'CD', 'AP', '2T', '1T', 'CP', 'MJ', 'TC', 'CL', 'BR'];
   const rankCounts = displayProcesses.reduce((acc: any, p) => {
     acc[p.posto] = (acc[p.posto] || 0) + 1;
     return acc;
