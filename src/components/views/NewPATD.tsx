@@ -716,7 +716,9 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
     boletim: '',
     observacoes: '',
     documents: [],
-    delegacaoDoc: null
+    delegacaoDoc: null,
+    sigadSecprom: '',
+    docArquivado: false
   });
 
   const printDocument = (type: string) => {
@@ -1628,7 +1630,9 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
           boletim: initialData.boletim || '',
           observacoes: initialData.observacoes || '',
           documents: initialData.documents || [],
-          delegacaoDoc: initialData.delegacaoDoc || null
+          delegacaoDoc: initialData.delegacaoDoc || null,
+          sigadSecprom: initialData.sigadSecprom || '',
+          docArquivado: !!initialData.docArquivado
         });
       }
       setHistory(initialData.history || []);
@@ -2231,7 +2235,9 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
     resumoPunicao: 'Resumo da Punição',
     nGrade: 'Nº Grade',
     boletim: 'Boletim',
-    observacoes: 'Observações'
+    observacoes: 'Observações',
+    sigadSecprom: 'SIGAD SECPROM',
+    docArquivado: 'Doc Arquivado'
   };
 
   const validateDates = (updatedData: any) => {
@@ -2422,7 +2428,9 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
         nGrade: '',
         boletim: '',
         observacoes: '',
-        documents: []
+        documents: [],
+        sigadSecprom: '',
+        docArquivado: false
       };
       setFormData(emptyForm);
       setSeqTrigger(prev => prev + 1);
@@ -2492,11 +2500,13 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
 
     if (isNewProcess && hasApurador && isOperatorOrAdmin) {
       setIsSaving(true);
-      supabase.from('profiles')
-        .select('email')
-        .eq('saram', formData.apuradorSaram.trim())
-        .maybeSingle()
-        .then(({ data, error }) => {
+      const fetchMail = async () => {
+        try {
+          const { data, error } = await supabase.from('profiles')
+            .select('email')
+            .eq('saram', formData.apuradorSaram.trim())
+            .maybeSingle();
+          if (error) throw error;
           setIsSaving(false);
           const email = data?.email || '';
           setPreviewMailData({
@@ -2509,8 +2519,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
             senderEmail: currentUser?.email || ""
           });
           setIsPreviewMailOpen(true);
-        })
-        .catch(err => {
+        } catch (err) {
           setIsSaving(false);
           console.error(err);
           setPreviewMailData({
@@ -2523,7 +2532,9 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
             senderEmail: currentUser?.email || ""
           });
           setIsPreviewMailOpen(true);
-        });
+        }
+      };
+      fetchMail();
     } else {
       executeSave();
     }
@@ -2909,6 +2920,43 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
               </div>
 
               <TextAreaField label="Observações" value={formData.observacoes} onChange={handleChange('observacoes')} />
+
+              {currentUser?.role === 'Administrador' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100 dark:border-slate-800">
+                  <InputField 
+                    label="SIGAD SECPROM" 
+                    icon={FileText} 
+                    value={formData.sigadSecprom || ''} 
+                    onChange={handleChange('sigadSecprom')} 
+                    placeholder="Ex: 60000.xxxxxx/xxxx-xx" 
+                  />
+                  <div className="flex items-center pt-6">
+                    <label className="flex items-center gap-3 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={!!formData.docArquivado}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          const oldValue = formData.docArquivado;
+                          const newHistoryItem = {
+                            field: 'Doc Arquivado',
+                            oldValue: oldValue ? 'Sim' : 'Não',
+                            newValue: checked ? 'Sim' : 'Não',
+                            user: currentUser?.name || 'Sistema',
+                            date: new Date().toLocaleString('pt-BR')
+                          };
+                          setHistory(prev => [newHistoryItem, ...prev]);
+                          setFormData(prev => ({ ...prev, docArquivado: checked }));
+                        }}
+                        className="w-5 h-5 rounded border-slate-300 dark:border-slate-750 text-indigo-600 focus:ring-indigo-500 cursor-pointer bg-white dark:bg-slate-900"
+                      />
+                      <span className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                        DOC ARQUIVADO
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              )}
 
               {formData.documents && formData.documents.length > 0 && (
                 <div className="space-y-2 mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">

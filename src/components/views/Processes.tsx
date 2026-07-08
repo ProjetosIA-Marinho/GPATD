@@ -21,7 +21,8 @@ import {
   History,
   Building2,
   User,
-  FileUp
+  FileUp,
+  Archive
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { Division } from './Divisions';
@@ -112,6 +113,18 @@ export interface Process {
   observacoes?: string;
   resumoPunicao?: string;
   delegacaoDoc?: { name: string; url: string; uploadedAt: string } | null;
+  sigadSecprom?: string;
+  docArquivado?: boolean;
+  apuradorSaram?: string;
+  apuradorPosto?: string;
+  apuradorQuadro?: string;
+  aplicadorPosto?: string;
+  aplicadorQuadro?: string;
+  aplicadorCargo?: string;
+  oficioNumero?: string;
+  protComaer?: string;
+  dataOficio?: string;
+  enquadramentoRdaer?: string;
 }
 
 export default function Processes({ 
@@ -633,7 +646,17 @@ export default function Processes({
                       </div>
                     </td>
                     <td className="px-6 py-5 pr-8 text-right" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center justify-end gap-1.5">
+                      <div className="flex items-center justify-end gap-1.5 flex-wrap md:flex-nowrap">
+                        {process.sigadSecprom && (
+                          <div className="px-2 py-1 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 text-[9px] font-black uppercase tracking-wider cursor-help shrink-0" title={`SIGAD SECPROM: ${process.sigadSecprom}`}>
+                            SIGAD: {process.sigadSecprom}
+                          </div>
+                        )}
+                        {process.docArquivado && (
+                          <div className="p-2 rounded-lg bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20 shadow-inner flex items-center justify-center shrink-0 cursor-help" title="Documento Arquivado">
+                            <Archive size={14} />
+                          </div>
+                        )}
                         {Array.isArray(process.documents) && process.documents.length > 0 && (
                           <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shadow-inner flex items-center justify-center shrink-0 cursor-help" title="Possui documentos inseridos">
                             <FileText size={14} />
@@ -641,7 +664,7 @@ export default function Processes({
                         )}
                         <button 
                           onClick={() => onEdit?.(process)}
-                          className="p-2 text-slate-400 hover:text-indigo-500 hover:bg-white dark:hover:bg-slate-800 rounded-lg transition-all shadow-sm border border-transparent hover:border-slate-100 dark:hover:border-slate-700" 
+                          className="p-2 text-slate-400 hover:text-indigo-500 hover:bg-white dark:hover:bg-slate-800 rounded-lg transition-all shadow-sm border border-transparent hover:border-slate-100 dark:hover:border-slate-700 shrink-0" 
                           title="Editar PATD"
                         >
                           <Edit2 size={16} />
@@ -776,6 +799,19 @@ export default function Processes({
                           <label className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">Divisão / Setor</label>
                           <p className="text-sm font-bold text-slate-700 dark:text-white uppercase">{selectedProcess.divisao} / {selectedProcess.setor}</p>
                         </div>
+                        {(selectedProcess.sigadSecprom || selectedProcess.docArquivado) && (
+                          <>
+                            <div className="space-y-1">
+                              <label className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">SIGAD SECPROM</label>
+                              <p className="text-sm font-bold text-slate-700 dark:text-white uppercase">{selectedProcess.sigadSecprom || '—'}</p>
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">Documento Arquivado</label>
+                              <p className="text-sm font-bold text-slate-700 dark:text-white uppercase">{selectedProcess.docArquivado ? 'Sim' : 'Não'}</p>
+                            </div>
+                            <div className="hidden md:block" />
+                          </>
+                        )}
                       </div>
                     </section>
 

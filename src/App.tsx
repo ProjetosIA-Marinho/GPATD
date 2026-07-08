@@ -189,7 +189,9 @@ export default function App() {
             protComaer: p.prot_comaer,
             dataOficio: p.data_oficio,
             enquadramentoRdaer: p.enquadramento_rdaer,
-            delegacaoDoc: p.delegacao_doc || null
+            delegacaoDoc: p.delegacao_doc || null,
+            sigadSecprom: p.sigad_secprom,
+            docArquivado: !!p.doc_arquivado
           })));
         }
       } catch (err) {
@@ -326,7 +328,9 @@ export default function App() {
         history: newProcessData.history || [],
         n_grade: newProcessData.nGrade || '',
         observacoes: newProcessData.observacoes || '',
-        resumo_punicao: newProcessData.resumoPunicao || ''
+        resumo_punicao: newProcessData.resumoPunicao || '',
+        sigad_secprom: newProcessData.sigadSecprom || null,
+        doc_arquivado: !!newProcessData.docArquivado
       };
 
       if (editingProcess && !editingProcess._isPrefilledNew) {
@@ -381,7 +385,7 @@ export default function App() {
                   to: apuradorProfile.email,
                   name: apuradorProfile.name,
                   patdNumber: dbPayload.patd_number,
-                  details: dbPayload.detalhes_fato || "",
+                  details: dbPayload.resumo_fato || "",
                   documentUrl: docUrl,
                   documentName: docName,
                   senderPhone: currentUser?.telefone || "",
@@ -409,7 +413,9 @@ export default function App() {
           diasPunicao: data.dias_punicao,
           documents: data.documents || [],
           history: data.history || initialHistory,
-          delegacaoDoc: data.delegacao_doc || null
+          delegacaoDoc: data.delegacao_doc || null,
+          sigadSecprom: data.sigad_secprom,
+          docArquivado: !!data.doc_arquivado
         };
         setProcesses(prev => [newProcess, ...prev]);
       }
