@@ -758,8 +758,8 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                       position: absolute;
                       top: 10mm;
                       right: 10mm;
-                      width: 50mm;
-                      height: 50mm;
+                      width: 65mm;
+                      height: 46mm;
                       z-index: 10;
                     }
                     @media print {
