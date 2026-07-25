@@ -811,18 +811,33 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
             const stampImg = await pdfDoc.embedPng(stampBytes);
 
             const pages = pdfDoc.getPages();
-            for (const page of pages) {
+            pages.forEach((page, index) => {
               const { width, height } = page.getSize();
-              const stampWidth = 150.0;
-              const stampHeight = 150.0 * (723 / 1024);
               
-              page.drawImage(stampImg, {
-                x: width - stampWidth + 25.0,
-                y: height - stampHeight + 15.0,
-                width: stampWidth,
-                height: stampHeight,
-              });
-            }
+              if (index === 0) {
+                // Folha 1: Proporção original (65mm x 46mm)
+                const stampWidth = 184.3;
+                const stampHeight = 184.3 * (723 / 1024);
+                
+                page.drawImage(stampImg, {
+                  x: width - stampWidth - 14.17,
+                  y: height - stampHeight - 14.17,
+                  width: stampWidth,
+                  height: stampHeight,
+                });
+              } else {
+                // Folha 2+: Tamanho menor para caber nos espaços em branco sem sobreposição
+                const stampWidth = 150.0;
+                const stampHeight = 150.0 * (723 / 1024);
+                
+                page.drawImage(stampImg, {
+                  x: width - stampWidth + 25.0,
+                  y: height - stampHeight + 15.0,
+                  width: stampWidth,
+                  height: stampHeight,
+                });
+              }
+            });
 
             const stampedPdfBytes = await pdfDoc.save();
             const blob = new Blob([stampedPdfBytes], { type: 'application/pdf' });
