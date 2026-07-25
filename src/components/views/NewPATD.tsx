@@ -721,9 +721,120 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
     docArquivado: false
   });
 
-  const printDocument = (type: string) => {
+  const printDocument = async (type: string) => {
     if (type === 'delegacao') {
       if (formData.delegacaoDoc) {
+        const isPng = formData.delegacaoDoc.name?.toLowerCase().endsWith('.png') || formData.delegacaoDoc.url?.toLowerCase().endsWith('.png');
+        const isPdf = formData.delegacaoDoc.name?.toLowerCase().endsWith('.pdf') || formData.delegacaoDoc.url?.toLowerCase().endsWith('.pdf');
+        
+        if (isPng) {
+          const printWindow = window.open('', '_blank');
+          if (printWindow) {
+            printWindow.document.write(`
+              <html>
+                <head>
+                  <title>Portaria de Delegação</title>
+                  <style>
+                    body {
+                      margin: 0;
+                      padding: 0;
+                      display: flex;
+                      justify-content: center;
+                      align-items: center;
+                      background-color: #ffffff;
+                    }
+                    .page-container {
+                      position: relative;
+                      width: 210mm;
+                      height: 297mm;
+                      box-sizing: border-box;
+                    }
+                    .doc-image {
+                      width: 100%;
+                      height: 100%;
+                      object-fit: contain;
+                    }
+                    .stamp-image {
+                      position: absolute;
+                      top: 10mm;
+                      right: 10mm;
+                      width: 50mm;
+                      height: 50mm;
+                      z-index: 10;
+                    }
+                    @media print {
+                      @page {
+                        size: A4;
+                        margin: 0;
+                      }
+                      body {
+                        margin: 0;
+                        padding: 0;
+                      }
+                      .page-container {
+                        width: 210mm;
+                        height: 297mm;
+                        page-break-after: always;
+                      }
+                    }
+                  </style>
+                </head>
+                <body>
+                  <div class="page-container">
+                    <img class="doc-image" src="${formData.delegacaoDoc.url}" />
+                    <img class="stamp-image" src="${window.location.origin}/sinete.png" />
+                  </div>
+                  <script>
+                    window.onload = function() {
+                      window.print();
+                      setTimeout(function() {
+                        window.close();
+                      }, 1000);
+                    }
+                  </script>
+                </body>
+              </html>
+            `);
+            printWindow.document.close();
+          }
+          return;
+        } else if (isPdf) {
+          try {
+            const response = await fetch(formData.delegacaoDoc.url);
+            const pdfBytes = await response.arrayBuffer();
+
+            const stampResponse = await fetch('/sinete.png');
+            const stampBytes = await stampResponse.arrayBuffer();
+
+            const { PDFDocument } = await import('pdf-lib');
+            const pdfDoc = await PDFDocument.load(pdfBytes);
+            const stampImg = await pdfDoc.embedPng(stampBytes);
+
+            const pages = pdfDoc.getPages();
+            for (const page of pages) {
+              const { width, height } = page.getSize();
+              const stampWidth = 141.7;
+              const stampHeight = 141.7;
+              
+              page.drawImage(stampImg, {
+                x: width - stampWidth - 28.3,
+                y: height - stampHeight - 28.3,
+                width: stampWidth,
+                height: stampHeight,
+              });
+            }
+
+            const stampedPdfBytes = await pdfDoc.save();
+            const blob = new Blob([stampedPdfBytes], { type: 'application/pdf' });
+            const stampedUrl = URL.createObjectURL(blob);
+            window.open(stampedUrl, '_blank');
+          } catch (error) {
+            console.error('Erro ao inserir carimbo no PDF:', error);
+            window.open(formData.delegacaoDoc.url, '_blank');
+          }
+          return;
+        }
+        
         window.open(formData.delegacaoDoc.url, '_blank');
       } else {
         alert('Nenhuma Portaria de Delegação anexada para imprimir.');
@@ -3517,13 +3628,20 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                                   </div>
 
                                   {/* Document Preview Frame */}
-                                  <div className="border border-slate-100 dark:border-slate-800 rounded-2xl p-4 bg-slate-50/50 dark:bg-slate-900/30 flex items-center justify-center overflow-hidden min-h-[300px]">
+                                  <div className="border border-slate-100 dark:border-slate-800 rounded-2xl p-4 bg-slate-50/50 dark:bg-slate-900/30 flex items-center justify-center overflow-hidden min-h-[300px] relative">
                                     {isPng ? (
-                                      <img
-                                        src={formData.delegacaoDoc.url}
-                                        alt="Portaria de Delegação"
-                                        className="max-h-[380px] object-contain rounded-lg shadow-md border border-slate-200 dark:border-slate-800"
-                                      />
+                                      <div className="relative inline-block">
+                                        <img
+                                          src={formData.delegacaoDoc.url}
+                                          alt="Portaria de Delegação"
+                                          className="max-h-[380px] object-contain rounded-lg shadow-md border border-slate-200 dark:border-slate-800"
+                                        />
+                                        <img
+                                          src="/sinete.png"
+                                          alt="Carimbo de Delegação"
+                                          className="absolute top-2 right-2 w-14 h-14 pointer-events-none drop-shadow-md"
+                                        />
+                                      </div>
                                     ) : (
                                       <div className="w-full flex flex-col items-center justify-center gap-4 py-8">
                                         <div className="h-16 w-16 flex items-center justify-center rounded-2xl bg-indigo-50 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-inner">
@@ -3532,6 +3650,9 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                                         <div className="text-center space-y-1">
                                           <p className="text-xs font-bold text-slate-700 dark:text-slate-300">Portaria de Delegação em formato PDF</p>
                                           <p className="text-[10px] text-slate-400 dark:text-slate-550">Visualização integrada em PDF não disponível para este dispositivo</p>
+                                          <p className="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-950/30 px-2.5 py-1 rounded-full inline-block mt-2">
+                                            ✓ O carimbo (sinete) será inserido automaticamente no canto superior direito de cada página do PDF ao imprimir.
+                                          </p>
                                         </div>
                                         <a
                                           href={formData.delegacaoDoc.url}
