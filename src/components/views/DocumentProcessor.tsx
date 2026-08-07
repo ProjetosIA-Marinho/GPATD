@@ -572,7 +572,7 @@ export default function DocumentProcessor({ isOpen, onClose, onUploadSuccess, fo
               )}
 
               {/* Configuration Settings */}
-              <div className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-850/50 border border-slate-100 dark:border-slate-800 space-y-5">
+              <div className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 space-y-5">
                 <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
                   <Settings size={12} />
                   Opções de Processamento
@@ -581,12 +581,12 @@ export default function DocumentProcessor({ isOpen, onClose, onUploadSuccess, fo
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Folder Destination selector */}
                   {folders.length > 0 && (
-                    <div className="flex flex-col gap-2 p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 md:col-span-2">
+                    <div className="flex flex-col gap-2 p-4 bg-white dark:bg-slate-950 rounded-2xl border border-slate-100 dark:border-slate-800 md:col-span-2">
                       <p className="text-sm font-bold text-slate-800 dark:text-slate-200">Pasta de Destino na Biblioteca</p>
                       <select
                         value={selectedFolderId}
                         onChange={(e) => setSelectedFolderId(e.target.value)}
-                        className="w-full h-11 px-4 rounded-xl bg-slate-50 dark:bg-slate-800 outline-hidden border border-transparent focus:border-indigo-500 transition-all text-xs font-bold text-slate-700 dark:text-slate-350 cursor-pointer"
+                        className="w-full h-11 px-4 rounded-xl bg-slate-50 dark:bg-slate-800 outline-hidden border border-transparent focus:border-indigo-500 transition-all text-xs font-bold text-slate-700 dark:text-slate-200 cursor-pointer"
                       >
                         <option value="">Apenas Download Local (Não enviar para biblioteca)</option>
                         {folders.map(f => (
@@ -597,10 +597,10 @@ export default function DocumentProcessor({ isOpen, onClose, onUploadSuccess, fo
                   )}
 
                   {/* OCR Option */}
-                  <div className="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800">
+                  <div className="flex items-center justify-between p-4 bg-white dark:bg-slate-950 rounded-2xl border border-slate-100 dark:border-slate-800">
                     <div>
                       <p className="text-sm font-bold text-slate-800 dark:text-slate-200">Reconhecimento de Texto (OCR)</p>
-                      <p className="text-[10px] text-slate-455">Torna o PDF final pesquisável para buscas de palavras.</p>
+                      <p className="text-[10px] text-slate-400 dark:text-slate-400">Torna o PDF final pesquisável para buscas de palavras.</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input 
@@ -614,7 +614,7 @@ export default function DocumentProcessor({ isOpen, onClose, onUploadSuccess, fo
                   </div>
 
                   {/* Compression Option */}
-                  <div className="flex flex-col gap-2 p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800">
+                  <div className="flex flex-col gap-2 p-4 bg-white dark:bg-slate-950 rounded-2xl border border-slate-100 dark:border-slate-800">
                     <p className="text-sm font-bold text-slate-800 dark:text-slate-200">Compactação do PDF</p>
                     <div className="flex gap-2 mt-1">
                       {(['low', 'medium', 'high'] as const).map((level) => (
@@ -625,7 +625,7 @@ export default function DocumentProcessor({ isOpen, onClose, onUploadSuccess, fo
                           className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider border transition-all ${
                             compressionLevel === level
                               ? 'bg-indigo-600 border-transparent text-white shadow-md'
-                              : 'bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border-slate-100 dark:border-slate-750 hover:bg-slate-100'
+                              : 'bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-400 border-slate-100 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-750'
                           }`}
                         >
                           {level === 'low' ? 'Baixa' : level === 'medium' ? 'Média' : 'Alta'}
@@ -653,7 +653,7 @@ export default function DocumentProcessor({ isOpen, onClose, onUploadSuccess, fo
               <>
                 <button 
                   onClick={onClose}
-                  className="flex-1 h-12 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-550 font-bold text-xs uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer"
+                  className="flex-1 h-12 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold text-xs uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer"
                 >
                   Cancelar
                 </button>

@@ -386,7 +386,7 @@ export default function Documents({ currentUser }: { currentUser: any }) {
                 ))}
               </div>
 
-              <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-850 p-1 rounded-xl border border-slate-100 dark:border-slate-800 shrink-0">
+              <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-100 dark:border-slate-800 shrink-0">
                 <button
                   onClick={() => setViewMode('grid')}
                   title="Visualizar em Grade"
@@ -505,7 +505,7 @@ export default function Documents({ currentUser }: { currentUser: any }) {
               </AnimatePresence>
             </div>
           ) : (
-            <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-850 shadow-sm overflow-hidden">
+            <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
@@ -566,7 +566,7 @@ export default function Documents({ currentUser }: { currentUser: any }) {
                           <td className="py-4 px-6 text-xs text-slate-500 dark:text-slate-400 italic">
                             {folder.description}
                           </td>
-                          <td className="py-4 px-6 text-xs font-bold text-slate-650 dark:text-slate-350">
+                          <td className="py-4 px-6 text-xs font-bold text-slate-600 dark:text-slate-300">
                             {folder.documents.length} Arquivo{folder.documents.length !== 1 ? 's' : ''}
                           </td>
                           {isAdmin && (
@@ -605,7 +605,7 @@ export default function Documents({ currentUser }: { currentUser: any }) {
               <span className="text-indigo-600">{selectedFolder.name}</span>
             </div>
 
-            <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-850 p-1 rounded-xl border border-slate-100 dark:border-slate-800 shrink-0">
+            <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-100 dark:border-slate-800 shrink-0">
               <button
                 onClick={() => setViewMode('grid')}
                 title="Visualizar em Grade"
@@ -692,7 +692,7 @@ export default function Documents({ currentUser }: { currentUser: any }) {
               </AnimatePresence>
             </div>
           ) : (
-            <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-850 shadow-sm overflow-hidden">
+            <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
