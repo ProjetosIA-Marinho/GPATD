@@ -17,7 +17,9 @@ import {
   ChevronRight,
   Edit2,
   Eye,
-  Sparkles
+  Sparkles,
+  LayoutGrid,
+  List
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from '../../lib/supabase';
@@ -52,6 +54,7 @@ export default function Documents({ currentUser }: { currentUser: any }) {
   const [selectedFolder, setSelectedFolder] = useState<Folder | null>(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   
   // Modals
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
@@ -366,196 +369,407 @@ export default function Documents({ currentUser }: { currentUser: any }) {
               />
             </div>
 
-            <div className="flex items-center gap-2 overflow-x-auto w-full lg:w-auto pb-2 lg:pb-0 scrollbar-hide">
-              {categories.map(cat => (
+            <div className="flex items-center gap-4 overflow-x-auto w-full lg:w-auto pb-2 lg:pb-0 scrollbar-hide justify-between lg:justify-end">
+              <div className="flex items-center gap-2">
+                {categories.map(cat => (
+                  <button
+                    key={cat}
+                    onClick={() => setFilterCategory(cat)}
+                    className={`h-9 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${
+                      filterCategory === cat 
+                        ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-transparent shadow-md font-black' 
+                        : 'bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-500 border-slate-100 dark:border-slate-700 hover:bg-slate-50'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-850 p-1 rounded-xl border border-slate-100 dark:border-slate-800 shrink-0">
                 <button
-                  key={cat}
-                  onClick={() => setFilterCategory(cat)}
-                  className={`h-9 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${
-                    filterCategory === cat 
-                      ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-transparent shadow-md font-black' 
-                      : 'bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-500 border-slate-100 dark:border-slate-700 hover:bg-slate-50'
-                  }`}
+                  onClick={() => setViewMode('grid')}
+                  title="Visualizar em Grade"
+                  className={`p-1.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-xs' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600'}`}
                 >
-                  {cat}
+                  <LayoutGrid size={16} />
                 </button>
-              ))}
+                <button
+                  onClick={() => setViewMode('list')}
+                  title="Visualizar em Lista"
+                  className={`p-1.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-xs' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600'}`}
+                >
+                  <List size={16} />
+                </button>
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            <AnimatePresence mode="popLayout">
-              {filterCategory === 'Todas' && !searchTerm && (
-                <motion.div
-                  layout
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  onClick={() => setIsProcessorOpen(true)}
-                  className="group relative bg-linear-to-br from-indigo-500/10 via-purple-500/5 to-transparent dark:from-indigo-950/20 dark:via-indigo-900/10 rounded-[2.5rem] border-2 border-dashed border-indigo-200 dark:border-indigo-800/40 p-8 shadow-sm hover:shadow-2xl transition-all cursor-pointer hover:-translate-y-1 overflow-hidden"
-                >
-                  <div className="absolute top-0 left-0 w-full h-1.5 bg-indigo-500" />
-                  
-                  <div className="flex items-start justify-between mb-8">
-                    <div className="h-16 w-16 rounded-2xl bg-indigo-100 dark:bg-indigo-950 flex items-center justify-center text-3xl text-indigo-650 dark:text-indigo-400 group-hover:scale-110 transition-transform shadow-md shadow-indigo-500/10">
-                      <Sparkles size={32} />
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div>
-                      <span className="px-3 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-[10px] font-black text-indigo-650 dark:text-indigo-400 uppercase tracking-widest">Ferramenta</span>
-                      <h3 className="text-xl font-bold text-slate-900 dark:text-white mt-3 group-hover:text-indigo-600 transition-colors">Juntada Digital</h3>
-                    </div>
+          {viewMode === 'grid' ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <AnimatePresence mode="popLayout">
+                {filterCategory === 'Todas' && !searchTerm && (
+                  <motion.div
+                    layout
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    onClick={() => setIsProcessorOpen(true)}
+                    className="group relative bg-linear-to-br from-indigo-500/10 via-purple-500/5 to-transparent dark:from-indigo-950/20 dark:via-indigo-900/10 rounded-[2.5rem] border-2 border-dashed border-indigo-200 dark:border-indigo-800/40 p-8 shadow-sm hover:shadow-2xl transition-all cursor-pointer hover:-translate-y-1 overflow-hidden"
+                  >
+                    <div className="absolute top-0 left-0 w-full h-1.5 bg-indigo-500" />
                     
-                    <p className="text-xs text-slate-500 dark:text-slate-400 italic leading-relaxed">
-                      Mescle múltiplos PDFs, imagens, Word ou ODT em um único documento comprimido e com OCR.
-                    </p>
-
-                    <div className="pt-6 border-t border-slate-50 dark:border-slate-800/60 flex items-center justify-between">
-                      <div className="flex items-center gap-1.5 bg-indigo-500/15 px-3 py-1.5 rounded-xl text-indigo-650 dark:text-indigo-400">
-                        <span className="text-[10px] font-black uppercase tracking-wider">Acessar Ferramenta</span>
+                    <div className="flex items-start justify-between mb-8">
+                      <div className="h-16 w-16 rounded-2xl bg-indigo-100 dark:bg-indigo-950 flex items-center justify-center text-3xl text-indigo-650 dark:text-indigo-400 group-hover:scale-110 transition-transform shadow-md shadow-indigo-500/10">
+                        <Sparkles size={32} />
                       </div>
                     </div>
-                  </div>
-                </motion.div>
-              )}
-              {filteredFolders.map((folder) => (
-                <motion.div
-                  layout
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  key={folder.id}
-                  onClick={() => setSelectedFolder(folder)}
-                  className="group relative bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 p-8 shadow-sm hover:shadow-2xl transition-all cursor-pointer hover:-translate-y-1 overflow-hidden"
-                >
-                  <div className="absolute top-0 left-0 w-full h-1.5 bg-indigo-500/20 group-hover:bg-indigo-500 transition-colors" />
-                  
-                  <div className="flex items-start justify-between mb-8">
-                    <div className="h-16 w-16 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-3xl text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform shadow-inner shadow-indigo-200/50">
-                      <Files size={32} />
-                    </div>
-                    {isAdmin && (
-                      <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); setEditingFolder(folder); setIsFolderModalOpen(true); }}
-                          className="h-9 w-9 flex items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-indigo-500 transition-colors border border-slate-100 dark:border-slate-700"
-                        >
-                          <Edit2 size={16} />
-                        </button>
-                        <button 
-                          onClick={(e) => handleDeleteFolder(folder.id, e)}
-                          className="h-9 w-9 flex items-center justify-center rounded-xl bg-rose-50 dark:bg-rose-900/30 text-rose-500 hover:bg-rose-500 hover:text-white transition-colors"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+
+                    <div className="space-y-4">
+                      <div>
+                        <span className="px-3 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-[10px] font-black text-indigo-650 dark:text-indigo-400 uppercase tracking-widest">Ferramenta</span>
+                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mt-3 group-hover:text-indigo-600 transition-colors">Juntada Digital</h3>
                       </div>
-                    )}
-                  </div>
+                      
+                      <p className="text-xs text-slate-500 dark:text-slate-400 italic leading-relaxed">
+                        Mescle múltiplos PDFs, imagens, Word ou ODT em um único documento comprimido e com OCR.
+                      </p>
 
-                  <div className="space-y-4">
-                    <div>
-                      <span className="px-3 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">{folder.category}</span>
-                      <h3 className="text-xl font-bold text-slate-900 dark:text-white mt-3 group-hover:text-indigo-600 transition-colors">{folder.name}</h3>
+                      <div className="pt-6 border-t border-slate-50 dark:border-slate-800/60 flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 bg-indigo-500/15 px-3 py-1.5 rounded-xl text-indigo-650 dark:text-indigo-400">
+                          <span className="text-[10px] font-black uppercase tracking-wider">Acessar Ferramenta</span>
+                        </div>
+                      </div>
                     </div>
+                  </motion.div>
+                )}
+                {filteredFolders.map((folder) => (
+                  <motion.div
+                    layout
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    key={folder.id}
+                    onClick={() => setSelectedFolder(folder)}
+                    className="group relative bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 p-8 shadow-sm hover:shadow-2xl transition-all cursor-pointer hover:-translate-y-1 overflow-hidden"
+                  >
+                    <div className="absolute top-0 left-0 w-full h-1.5 bg-indigo-500/20 group-hover:bg-indigo-500 transition-colors" />
                     
-                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 italic leading-relaxed">
-                      {folder.description}
-                    </p>
+                    <div className="flex items-start justify-between mb-8">
+                      <div className="h-16 w-16 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-3xl text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform shadow-inner shadow-indigo-200/50">
+                        <Files size={32} />
+                      </div>
+                      {isAdmin && (
+                        <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); setEditingFolder(folder); setIsFolderModalOpen(true); }}
+                            className="h-9 w-9 flex items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-indigo-500 transition-colors border border-slate-100 dark:border-slate-700"
+                          >
+                            <Edit2 size={16} />
+                          </button>
+                          <button 
+                            onClick={(e) => handleDeleteFolder(folder.id, e)}
+                            className="h-9 w-9 flex items-center justify-center rounded-xl bg-rose-50 dark:bg-rose-900/30 text-rose-500 hover:bg-rose-500 hover:text-white transition-colors"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
 
-                    <div className="pt-6 border-t border-slate-50 dark:border-slate-800 flex items-center justify-between">
-                      <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800/50 px-3 py-1.5 rounded-xl border border-slate-100 dark:border-slate-700">
-                        <FileText size={14} className="text-slate-400" />
-                        <span className="text-[11px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-tighter">
-                          {folder.documents.length} Arquivo{folder.documents.length !== 1 ? 's' : ''}
+                    <div className="space-y-4">
+                      <div>
+                        <span className="px-3 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">{folder.category}</span>
+                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mt-3 group-hover:text-indigo-600 transition-colors">{folder.name}</h3>
+                      </div>
+                      
+                      <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 italic leading-relaxed">
+                        {folder.description}
+                      </p>
+
+                      <div className="pt-6 border-t border-slate-50 dark:border-slate-800 flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800/50 px-3 py-1.5 rounded-xl border border-slate-100 dark:border-slate-700">
+                          <FileText size={14} className="text-slate-400" />
+                          <span className="text-[11px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-tighter">
+                            {folder.documents.length} Arquivo{folder.documents.length !== 1 ? 's' : ''}
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 flex items-center gap-1">
+                          <Calendar size={12} />
+                          {folder.updatedAt}
                         </span>
                       </div>
-                      <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 flex items-center gap-1">
-                        <Calendar size={12} />
-                        {folder.updatedAt}
-                      </span>
                     </div>
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+          ) : (
+            <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-850 shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-100 dark:border-slate-800 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest bg-slate-50/50 dark:bg-slate-800/30">
+                      <th className="py-4 px-6">Pasta</th>
+                      <th className="py-4 px-6">Categoria</th>
+                      <th className="py-4 px-6">Descrição</th>
+                      <th className="py-4 px-6">Arquivos</th>
+                      {isAdmin && <th className="py-4 px-6 text-right">Ações</th>}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
+                    <AnimatePresence mode="popLayout">
+                      {filterCategory === 'Todas' && !searchTerm && (
+                        <motion.tr
+                          layout
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          onClick={() => setIsProcessorOpen(true)}
+                          className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 cursor-pointer transition-colors group border-b border-slate-100 dark:border-slate-800/50"
+                        >
+                          <td className="py-4 px-6 font-bold text-slate-900 dark:text-white flex items-center gap-3">
+                            <div className="h-8 w-8 rounded-lg bg-indigo-100 dark:bg-indigo-950 flex items-center justify-center text-indigo-650 dark:text-indigo-400">
+                              <Sparkles size={16} />
+                            </div>
+                            <span className="group-hover:text-indigo-600 transition-colors">Juntada Digital</span>
+                          </td>
+                          <td className="py-4 px-6">
+                            <span className="px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-[9px] font-black text-indigo-650 dark:text-indigo-400 uppercase tracking-widest">Ferramenta</span>
+                          </td>
+                          <td className="py-4 px-6 text-xs text-slate-500 dark:text-slate-400 italic">
+                            Mescle múltiplos PDFs, imagens, Word ou ODT em um único documento comprimido e com OCR.
+                          </td>
+                          <td className="py-4 px-6 text-xs text-slate-400">-</td>
+                          {isAdmin && <td className="py-4 px-6"></td>}
+                        </motion.tr>
+                      )}
+                      {filteredFolders.map((folder) => (
+                        <motion.tr
+                          layout
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          key={folder.id}
+                          onClick={() => setSelectedFolder(folder)}
+                          className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 cursor-pointer transition-colors group border-b border-slate-100 dark:border-slate-800/50"
+                        >
+                          <td className="py-4 px-6 font-bold text-slate-900 dark:text-white flex items-center gap-3">
+                            <div className="h-8 w-8 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-650 dark:text-indigo-400">
+                              <Files size={16} />
+                            </div>
+                            <span className="group-hover:text-indigo-600 transition-colors">{folder.name}</span>
+                          </td>
+                          <td className="py-4 px-6">
+                            <span className="px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-900/30 text-[9px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">{folder.category}</span>
+                          </td>
+                          <td className="py-4 px-6 text-xs text-slate-500 dark:text-slate-400 italic">
+                            {folder.description}
+                          </td>
+                          <td className="py-4 px-6 text-xs font-bold text-slate-650 dark:text-slate-350">
+                            {folder.documents.length} Arquivo{folder.documents.length !== 1 ? 's' : ''}
+                          </td>
+                          {isAdmin && (
+                            <td className="py-4 px-6 text-right" onClick={(e) => e.stopPropagation()}>
+                              <div className="flex justify-end gap-2">
+                                <button 
+                                  onClick={() => { setEditingFolder(folder); setIsFolderModalOpen(true); }}
+                                  className="h-8 w-8 flex items-center justify-center rounded-lg bg-slate-50 dark:bg-slate-850 text-slate-400 hover:text-indigo-500 transition-colors border border-slate-100 dark:border-slate-700"
+                                >
+                                  <Edit2 size={14} />
+                                </button>
+                                <button 
+                                  onClick={(e) => handleDeleteFolder(folder.id, e)}
+                                  className="h-8 w-8 flex items-center justify-center rounded-lg bg-rose-50 dark:bg-rose-900/30 text-rose-500 hover:bg-rose-500 hover:text-white transition-colors"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            </td>
+                          )}
+                        </motion.tr>
+                      ))}
+                    </AnimatePresence>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </>
       ) : (
         <div className="space-y-6">
-          <div className="flex items-center gap-4 text-xs font-black uppercase tracking-[0.2em] text-slate-400">
-            <button onClick={() => setSelectedFolder(null)} className="hover:text-indigo-600 transition-colors">Biblioteca</button>
-            <ChevronRight size={14} />
-            <span className="text-indigo-600">{selectedFolder.name}</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4 text-xs font-black uppercase tracking-[0.2em] text-slate-400">
+              <button onClick={() => setSelectedFolder(null)} className="hover:text-indigo-600 transition-colors">Biblioteca</button>
+              <ChevronRight size={14} />
+              <span className="text-indigo-600">{selectedFolder.name}</span>
+            </div>
+
+            <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-850 p-1 rounded-xl border border-slate-100 dark:border-slate-800 shrink-0">
+              <button
+                onClick={() => setViewMode('grid')}
+                title="Visualizar em Grade"
+                className={`p-1.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-xs' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600'}`}
+              >
+                <LayoutGrid size={16} />
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                title="Visualizar em Lista"
+                className={`p-1.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-xs' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600'}`}
+              >
+                <List size={16} />
+              </button>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            <AnimatePresence mode="popLayout">
-              {selectedFolder.documents.map((doc) => (
-                <motion.div
-                  layout
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  key={doc.id}
-                  className="group bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 p-6 shadow-sm hover:shadow-xl transition-all"
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="h-14 w-14 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform shadow-inner">
-                      {getFileIcon(doc.type)}
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <button 
-                        onClick={() => handleViewDocument(doc)}
-                        title="Visualizar Documento"
-                        className="h-10 w-10 flex items-center justify-center rounded-xl bg-sky-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 hover:bg-sky-600 hover:text-white transition-all shadow-sm border border-sky-100 dark:border-sky-800"
-                      >
-                        <Eye size={18} />
-                      </button>
-                      <button 
-                        onClick={() => handleDownloadDocument(doc)}
-                        title="Baixar Documento"
-                        className="h-10 w-10 flex items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 hover:text-white transition-all shadow-sm border border-indigo-100 dark:border-indigo-800"
-                      >
-                        <Download size={18} />
-                      </button>
-                      {isAdmin && (
-                        <button 
-                          onClick={() => handleDeleteDocument(doc.id)}
-                          className="h-10 w-10 flex items-center justify-center rounded-xl bg-rose-50 dark:bg-rose-900/30 text-rose-500 hover:bg-rose-500 hover:text-white transition-all shadow-sm border border-rose-100 dark:border-rose-800"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <h3 className="text-base font-bold text-slate-800 dark:text-white leading-tight group-hover:text-indigo-600 transition-colors">{doc.name}</h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 italic mb-2 line-clamp-2">{doc.description}</p>
-                    <div className="pt-4 border-t border-slate-50 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
-                      <div className="flex items-center gap-3">
-                        <span className="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
-                          <Calendar size={12} /> {new Date(doc.uploadedat).toLocaleDateString('pt-BR')}
-                        </span>
-                        <span className="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase tracking-tighter border-l pl-3 dark:border-slate-800">
-                          {doc.size}
-                        </span>
-                      </div>
-                      <span className="text-[9px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest">{doc.uploadedby}</span>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-          {selectedFolder.documents.length === 0 && (
+          {selectedFolder.documents.length === 0 ? (
             <div className="py-20 text-center bg-slate-50/50 dark:bg-slate-800/30 rounded-[3rem] border-2 border-dashed border-slate-200 dark:border-slate-800">
               <div className="h-20 w-20 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center mx-auto mb-4 text-slate-300 shadow-sm">
                 <Files size={32} />
               </div>
               <p className="font-bold text-slate-400 uppercase tracking-[0.2em] text-xs">Pasta vazia</p>
+            </div>
+          ) : viewMode === 'grid' ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              <AnimatePresence mode="popLayout">
+                {selectedFolder.documents.map((doc) => (
+                  <motion.div
+                    layout
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    key={doc.id}
+                    className="group bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 p-6 shadow-sm hover:shadow-xl transition-all"
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="h-14 w-14 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform shadow-inner">
+                        {getFileIcon(doc.type)}
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <button 
+                          onClick={() => handleViewDocument(doc)}
+                          title="Visualizar Documento"
+                          className="h-10 w-10 flex items-center justify-center rounded-xl bg-sky-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 hover:bg-sky-600 hover:text-white transition-all shadow-sm border border-sky-100 dark:border-sky-800"
+                        >
+                          <Eye size={18} />
+                        </button>
+                        <button 
+                          onClick={() => handleDownloadDocument(doc)}
+                          title="Baixar Documento"
+                          className="h-10 w-10 flex items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 hover:text-white transition-all shadow-sm border border-indigo-100 dark:border-indigo-800"
+                        >
+                          <Download size={18} />
+                        </button>
+                        {isAdmin && (
+                          <button 
+                            onClick={() => handleDeleteDocument(doc.id)}
+                            className="h-10 w-10 flex items-center justify-center rounded-xl bg-rose-50 dark:bg-rose-900/30 text-rose-500 hover:bg-rose-500 hover:text-white transition-all shadow-sm border border-rose-100 dark:border-rose-800"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <h3 className="text-base font-bold text-slate-800 dark:text-white leading-tight group-hover:text-indigo-600 transition-colors">{doc.name}</h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 italic mb-2 line-clamp-2">{doc.description}</p>
+                      <div className="pt-4 border-t border-slate-50 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <span className="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                            <Calendar size={12} /> {new Date(doc.uploadedat).toLocaleDateString('pt-BR')}
+                          </span>
+                          <span className="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase tracking-tighter border-l pl-3 dark:border-slate-800">
+                            {doc.size}
+                          </span>
+                        </div>
+                        <span className="text-[9px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest">{doc.uploadedby}</span>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+          ) : (
+            <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-850 shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-100 dark:border-slate-800 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest bg-slate-50/50 dark:bg-slate-800/30">
+                      <th className="py-4 px-6">Nome</th>
+                      <th className="py-4 px-6">Tipo</th>
+                      <th className="py-4 px-6">Descrição</th>
+                      <th className="py-4 px-6">Tamanho</th>
+                      <th className="py-4 px-6">Enviado por</th>
+                      <th className="py-4 px-6">Enviado em</th>
+                      <th className="py-4 px-6 text-right">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
+                    <AnimatePresence mode="popLayout">
+                      {selectedFolder.documents.map((doc) => (
+                        <motion.tr
+                          layout
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          key={doc.id}
+                          className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors group border-b border-slate-100 dark:border-slate-800/50"
+                        >
+                          <td className="py-4 px-6 font-bold text-slate-900 dark:text-white flex items-center gap-3">
+                            <div className="h-8 w-8 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center">
+                              {getFileIcon(doc.type)}
+                            </div>
+                            <span className="truncate max-w-xs">{doc.name}</span>
+                          </td>
+                          <td className="py-4 px-6 text-xs uppercase font-semibold text-slate-400">
+                            {doc.type}
+                          </td>
+                          <td className="py-4 px-6 text-xs text-slate-500 dark:text-slate-400 italic max-w-xs truncate">
+                            {doc.description}
+                          </td>
+                          <td className="py-4 px-6 text-xs text-slate-650 dark:text-slate-350">
+                            {doc.size}
+                          </td>
+                          <td className="py-4 px-6 text-xs text-slate-650 dark:text-slate-350">
+                            {doc.uploadedby}
+                          </td>
+                          <td className="py-4 px-6 text-xs text-slate-400">
+                            {new Date(doc.uploadedat).toLocaleDateString('pt-BR')}
+                          </td>
+                          <td className="py-4 px-6 text-right">
+                            <div className="flex justify-end gap-2">
+                              <button 
+                                onClick={() => handleViewDocument(doc)}
+                                title="Visualizar Documento"
+                                className="h-8 w-8 flex items-center justify-center rounded-lg bg-sky-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 hover:bg-sky-600 hover:text-white transition-all shadow-sm border border-sky-100 dark:border-sky-800"
+                              >
+                                <Eye size={14} />
+                              </button>
+                              <button 
+                                onClick={() => handleDownloadDocument(doc)}
+                                title="Baixar Documento"
+                                className="h-8 w-8 flex items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 hover:text-white transition-all shadow-sm border border-indigo-100 dark:border-indigo-800"
+                              >
+                                <Download size={14} />
+                              </button>
+                              {isAdmin && (
+                                <button 
+                                  onClick={() => handleDeleteDocument(doc.id)}
+                                  className="h-8 w-8 flex items-center justify-center rounded-lg bg-rose-50 dark:bg-rose-900/30 text-rose-500 hover:bg-rose-500 hover:text-white transition-all shadow-sm border border-rose-100 dark:border-rose-800"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </motion.tr>
+                      ))}
+                    </AnimatePresence>
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>

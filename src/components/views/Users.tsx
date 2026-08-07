@@ -27,7 +27,9 @@ import {
   EyeOff,
   Send,
   Check,
-  Loader2
+  Loader2,
+  LayoutGrid,
+  List
 } from 'lucide-react';
 import { Division } from './Divisions';
 import { supabase } from '../../lib/supabase';
@@ -155,6 +157,7 @@ export default function Users({ users, setUsers, divisions, globalSearchTerm = '
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   // Bulk Email State
   const [isBulkEmailModalOpen, setIsBulkEmailModalOpen] = useState(false);
@@ -570,7 +573,7 @@ Seção de Investigação e Justiça (SIJ)`);
           />
         </div>
         <div className="flex items-center gap-3 w-full md:w-auto">
-          <div className="relative group w-full md:w-48">
+          <div className="relative group w-full md:w-48 flex-1 md:flex-none">
              <Filter size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
              <select 
                value={filterRole}
@@ -585,165 +588,279 @@ Seção de Investigação e Justiça (SIJ)`);
              </select>
              <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
           </div>
+
+          <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-800/50 p-1.5 rounded-2xl border border-slate-100 dark:border-slate-800 shrink-0">
+            <button
+              onClick={() => setViewMode('grid')}
+              title="Visualizar em Grade"
+              className={`p-2 rounded-xl transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-400 dark:text-slate-500 hover:text-slate-650'}`}
+            >
+              <LayoutGrid size={16} />
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              title="Visualizar em Lista"
+              className={`p-2 rounded-xl transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-400 dark:text-slate-500 hover:text-slate-650'}`}
+            >
+              <List size={16} />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Users Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <AnimatePresence mode='popLayout'>
-          {filteredUsers.map((user, idx) => (
-            <motion.div
-              key={user.id}
-              layout
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ delay: idx * 0.05 }}
-              className="group relative p-6 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500/50 transition-all shadow-sm hover:shadow-xl hover:shadow-indigo-500/5 overflow-hidden"
-            >
-              {/* Background Glow */}
-              <div className="absolute -top-12 -right-12 w-32 h-32 bg-indigo-500/5 rounded-full blur-3xl group-hover:bg-indigo-500/10 transition-colors" />
-              
-              {/* Status Corner Ribbon (Star fold) */}
-              <div className="absolute top-0 right-0 z-20">
-                <div className="relative">
-                  <div 
-                    className={`w-12 h-12 ${user.status === 'Ativo' ? 'bg-indigo-600 dark:bg-indigo-500' : 'bg-slate-200 dark:bg-slate-800'} fill-current`} 
-                    style={{ clipPath: 'polygon(0 0, 100% 0, 100% 100%)' }} 
-                  />
-                  <span 
-                    className={`absolute top-1.5 right-1.5 text-[9px] font-black leading-none ${
-                      user.status === 'Ativo' ? 'text-white' : 'text-slate-400 dark:text-slate-500'
-                    }`}
-                  >
-                    ★
-                  </span>
-                </div>
-              </div>
-
-              <div className="relative z-10 flex flex-col h-full">
-                {/* Centered Circular Avatar and overlapping role badge */}
-                <div className="flex flex-col items-center mt-2 mb-4 relative shrink-0">
+      {/* Users Grid / List */}
+      {viewMode === 'grid' ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <AnimatePresence mode='popLayout'>
+            {filteredUsers.map((user, idx) => (
+              <motion.div
+                key={user.id}
+                layout
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ delay: idx * 0.05 }}
+                className="group relative p-6 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500/50 transition-all shadow-sm hover:shadow-xl hover:shadow-indigo-500/5 overflow-hidden"
+              >
+                {/* Background Glow */}
+                <div className="absolute -top-12 -right-12 w-32 h-32 bg-indigo-500/5 rounded-full blur-3xl group-hover:bg-indigo-500/10 transition-colors" />
+                
+                {/* Status Corner Ribbon (Star fold) */}
+                <div className="absolute top-0 right-0 z-20">
                   <div className="relative">
-                    <div className="w-24 h-24 rounded-full border-4 border-slate-50 dark:border-slate-850 shadow-inner bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-650 dark:text-slate-400 overflow-hidden uppercase font-black text-xs group-hover:scale-105 transition-transform duration-555">
-                      {(() => {
-                        const div = divisions.find(d => d.name === user.divisao);
-                        if (div && div.image) {
-                          return <img src={div.image} alt={div.name} className="w-full h-full object-cover object-center" />;
-                        }
-                        return (
-                          <svg className="w-14 h-14 text-slate-350 dark:text-slate-700" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
-                          </svg>
-                        );
-                      })()}
-                    </div>
-                    {/* Overlapping Bottom Badge */}
-                    <div className="w-8 h-8 rounded-full border-2 border-white dark:border-slate-900 shadow-md bg-white dark:bg-slate-800 flex items-center justify-center absolute -bottom-1.5 left-1/2 -translate-x-1/2 translate-y-1/4 z-10">
-                      {(() => {
-                        switch (user.role) {
-                          case 'Administrador': return <Shield size={14} className="text-indigo-600 dark:text-indigo-400 stroke-[2.5]" />;
-                          case 'Operador': return <Briefcase size={14} className="text-emerald-500 dark:text-emerald-400 stroke-[2.5]" />;
-                          case 'Apurador': return <Search size={14} className="text-amber-500 dark:text-amber-400 stroke-[2.5]" />;
-                          case 'Visualizador': return <Eye size={14} className="text-slate-500 dark:text-slate-400 stroke-[2.5]" />;
-                          default: return <UserSoloIcon size={14} className="text-slate-500 dark:text-slate-400 stroke-[2.5]" />;
-                        }
-                      })()}
-                    </div>
+                    <div 
+                      className={`w-12 h-12 ${user.status === 'Ativo' ? 'bg-indigo-600 dark:bg-indigo-500' : 'bg-slate-200 dark:bg-slate-800'} fill-current`} 
+                      style={{ clipPath: 'polygon(0 0, 100% 0, 100% 100%)' }} 
+                    />
+                    <span 
+                      className={`absolute top-1.5 right-1.5 text-[9px] font-black leading-none ${
+                        user.status === 'Ativo' ? 'text-white' : 'text-slate-400 dark:text-slate-500'
+                      }`}
+                    >
+                      ★
+                    </span>
                   </div>
                 </div>
 
-                {/* Center aligned User Name and details */}
-                <div className="text-center mt-4 mb-6 shrink-0">
-                  <h4 className="font-display font-bold text-slate-900 dark:text-white uppercase text-base tracking-tight line-clamp-1">{user.name}</h4>
-                  <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">{user.posto} • SARAM {user.saram}</p>
-                </div>
-
-                {/* Metrics Info Rows with colored circles */}
-                <div className="space-y-4 px-2 mb-6 flex-1">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
-                      <Building2 size={14} className="stroke-[2.5]" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider leading-none">Divisão</p>
-                      <p className="text-xs font-bold text-slate-700 dark:text-slate-200 mt-1.5 truncate">{user.divisao || 'Não especificada'}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                      <Shield size={14} className="stroke-[2.5]" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider leading-none">Cargo</p>
-                      <p className="text-xs font-bold text-slate-700 dark:text-slate-200 mt-1.5 truncate">{user.role}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-rose-500/10 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
-                      <Mail size={14} className="stroke-[2.5]" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider leading-none">E-mail</p>
-                      <p className="text-xs font-bold text-slate-700 dark:text-slate-200 mt-1.5 truncate">{user.email || 'Não cadastrado'}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Footer Section with dropdown menu */}
-                <div className="mt-auto pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between relative shrink-0">
-                  <div>
-                    <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider leading-none">Último Acesso</p>
-                    <p className="text-[10px] font-bold text-slate-600 dark:text-slate-400 mt-1.5">{user.lastAccess}</p>
-                  </div>
-                  
-                  {(isAdmin || (loggedUser?.role === 'Operador' && user.role === 'Apurador')) && (
+                <div className="relative z-10 flex flex-col h-full">
+                  {/* Centered Circular Avatar and overlapping role badge */}
+                  <div className="flex flex-col items-center mt-2 mb-4 relative shrink-0">
                     <div className="relative">
-                      <button 
-                        onClick={() => setActiveDropdownId(activeDropdownId === user.id ? null : user.id)}
-                        className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-750 flex items-center justify-center text-slate-500 dark:text-slate-400 transition-colors border border-transparent hover:border-slate-200/50 dark:hover:border-slate-700"
-                      >
-                        <MoreVertical size={16} />
-                      </button>
-                      
-                      {activeDropdownId === user.id && (
-                        <>
-                          <div className="fixed inset-0 z-30" onClick={() => setActiveDropdownId(null)} />
-                          <div className="absolute bottom-10 right-0 z-40 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-1.5 flex flex-col min-w-32 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                      <div className="w-24 h-24 rounded-full border-4 border-slate-50 dark:border-slate-850 shadow-inner bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-650 dark:text-slate-400 overflow-hidden uppercase font-black text-xs group-hover:scale-105 transition-transform duration-555">
+                        {(() => {
+                          const div = divisions.find(d => d.name === user.divisao);
+                          if (div && div.image) {
+                            return <img src={div.image} alt={div.name} className="w-full h-full object-cover object-center" />;
+                          }
+                          return (
+                            <svg className="w-14 h-14 text-slate-350 dark:text-slate-700" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                          );
+                        })()}
+                      </div>
+                      {/* Overlapping Bottom Badge */}
+                      <div className="w-8 h-8 rounded-full border-2 border-white dark:border-slate-900 shadow-md bg-white dark:bg-slate-800 flex items-center justify-center absolute -bottom-1.5 left-1/2 -translate-x-1/2 translate-y-1/4 z-10">
+                        {(() => {
+                          switch (user.role) {
+                            case 'Administrador': return <Shield size={14} className="text-indigo-600 dark:text-indigo-400 stroke-[2.5]" />;
+                            case 'Operador': return <Briefcase size={14} className="text-emerald-500 dark:text-emerald-400 stroke-[2.5]" />;
+                            case 'Apurador': return <Search size={14} className="text-amber-500 dark:text-amber-400 stroke-[2.5]" />;
+                            case 'Visualizador': return <Eye size={14} className="text-slate-500 dark:text-slate-400 stroke-[2.5]" />;
+                            default: return <UserSoloIcon size={14} className="text-slate-500 dark:text-slate-400 stroke-[2.5]" />;
+                          }
+                        })()}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Center aligned User Name and details */}
+                  <div className="text-center mt-4 mb-6 shrink-0">
+                    <h4 className="font-display font-bold text-slate-900 dark:text-white uppercase text-base tracking-tight line-clamp-1">{user.name}</h4>
+                    <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">{user.posto} • SARAM {user.saram}</p>
+                  </div>
+
+                  {/* Metrics Info Rows with colored circles */}
+                  <div className="space-y-4 px-2 mb-6 flex-1">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                        <Building2 size={14} className="stroke-[2.5]" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider leading-none">Divisão</p>
+                        <p className="text-xs font-bold text-slate-700 dark:text-slate-200 mt-1.5 truncate">{user.divisao || 'Não especificada'}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                        <Shield size={14} className="stroke-[2.5]" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider leading-none">Cargo</p>
+                        <p className="text-xs font-bold text-slate-700 dark:text-slate-200 mt-1.5 truncate">{user.role}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-rose-500/10 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                        <Mail size={14} className="stroke-[2.5]" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider leading-none">E-mail</p>
+                        <p className="text-xs font-bold text-slate-700 dark:text-slate-200 mt-1.5 truncate">{user.email || 'Não cadastrado'}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Footer Section with dropdown menu */}
+                  <div className="mt-auto pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between relative shrink-0">
+                    <div>
+                      <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider leading-none">Último Acesso</p>
+                      <p className="text-[10px] font-bold text-slate-600 dark:text-slate-400 mt-1.5">{user.lastAccess}</p>
+                    </div>
+                    
+                    {(isAdmin || (loggedUser?.role === 'Operador' && user.role === 'Apurador')) && (
+                      <div className="relative">
+                        <button 
+                          onClick={() => setActiveDropdownId(activeDropdownId === user.id ? null : user.id)}
+                          className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-750 flex items-center justify-center text-slate-500 dark:text-slate-400 transition-colors border border-transparent hover:border-slate-200/50 dark:hover:border-slate-700"
+                        >
+                          <MoreVertical size={16} />
+                        </button>
+                        
+                        {activeDropdownId === user.id && (
+                          <>
+                            <div className="fixed inset-0 z-30" onClick={() => setActiveDropdownId(null)} />
+                            <div className="absolute bottom-10 right-0 z-40 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-1.5 flex flex-col min-w-32 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                              <button 
+                                onClick={() => {
+                                  setActiveDropdownId(null);
+                                  handleOpenModal(user);
+                                }}
+                                className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors w-full text-left"
+                              >
+                                <Edit2 size={14} className="text-slate-400" />
+                                Editar
+                              </button>
+                              <button 
+                                onClick={() => {
+                                  setActiveDropdownId(null);
+                                  setUserToDelete(user);
+                                  setIsDeleteModalOpen(true);
+                                }}
+                                className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors w-full text-left"
+                              >
+                                <Trash2 size={14} className="text-rose-500" />
+                                Excluir
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+      ) : (
+        <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-200 dark:border-slate-800 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest bg-slate-50/50 dark:bg-slate-800/30">
+                  <th className="py-4 px-6">Usuário</th>
+                  <th className="py-4 px-6">Divisão</th>
+                  <th className="py-4 px-6">Cargo</th>
+                  <th className="py-4 px-6">E-mail</th>
+                  <th className="py-4 px-6">Status</th>
+                  <th className="py-4 px-6">Último Acesso</th>
+                  {(isAdmin || (loggedUser?.role === 'Operador')) && <th className="py-4 px-6 text-right">Ações</th>}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
+                <AnimatePresence mode="popLayout">
+                  {filteredUsers.map((user) => (
+                    <motion.tr
+                      key={user.id}
+                      layout
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors border-b border-slate-100 dark:border-slate-800/50"
+                    >
+                      <td className="py-4 px-6 font-bold text-slate-900 dark:text-white flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full border-2 border-slate-50 dark:border-slate-800 shadow-inner bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-650 dark:text-slate-400 overflow-hidden uppercase font-black text-xs shrink-0">
+                          {(() => {
+                            const div = divisions.find(d => d.name === user.divisao);
+                            if (div && div.image) {
+                              return <img src={div.image} alt={div.name} className="w-full h-full object-cover object-center" />;
+                            }
+                            return (
+                              <svg className="w-6 h-6 text-slate-350 dark:text-slate-750" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
+                              </svg>
+                            );
+                          })()}
+                        </div>
+                        <div>
+                          <div className="font-semibold text-slate-900 dark:text-white">{user.name}</div>
+                          <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{user.posto} • SARAM {user.saram}</div>
+                        </div>
+                      </td>
+                      <td className="py-4 px-6 text-xs font-semibold text-slate-700 dark:text-slate-350">
+                        {user.divisao || 'Não especificada'}
+                      </td>
+                      <td className="py-4 px-6">
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border uppercase tracking-wider ${getRoleBadgeStyle(user.role)}`}>
+                          {user.role}
+                        </span>
+                      </td>
+                      <td className="py-4 px-6 text-xs text-slate-650 dark:text-slate-350">
+                        {user.email || '-'}
+                      </td>
+                      <td className="py-4 px-6">
+                        <span className={`inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest ${user.status === 'Ativo' ? 'text-indigo-650 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-550'}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${user.status === 'Ativo' ? 'bg-indigo-650 dark:bg-indigo-400' : 'bg-slate-300 dark:bg-slate-705'}`} />
+                          {user.status}
+                        </span>
+                      </td>
+                      <td className="py-4 px-6 text-xs text-slate-550 dark:text-slate-450">
+                        {user.lastAccess}
+                      </td>
+                      {(isAdmin || (loggedUser?.role === 'Operador' && user.role === 'Apurador')) && (
+                        <td className="py-4 px-6 text-right">
+                          <div className="flex justify-end gap-2">
                             <button 
-                              onClick={() => {
-                                setActiveDropdownId(null);
-                                handleOpenModal(user);
-                              }}
-                              className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors w-full text-left"
+                              onClick={() => handleOpenModal(user)}
+                              title="Editar Usuário"
+                              className="h-8 w-8 flex items-center justify-center rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-indigo-500 transition-colors border border-slate-100 dark:border-slate-700"
                             >
-                              <Edit2 size={14} className="text-slate-400" />
-                              Editar
+                              <Edit2 size={14} />
                             </button>
                             <button 
                               onClick={() => {
-                                setActiveDropdownId(null);
                                 setUserToDelete(user);
                                 setIsDeleteModalOpen(true);
                               }}
-                              className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors w-full text-left"
+                              title="Excluir Usuário"
+                              className="h-8 w-8 flex items-center justify-center rounded-lg bg-rose-50 dark:bg-rose-900/30 text-rose-500 hover:bg-rose-500 hover:text-white transition-colors"
                             >
-                              <Trash2 size={14} className="text-rose-500" />
-                              Excluir
+                              <Trash2 size={14} />
                             </button>
                           </div>
-                        </>
+                        </td>
                       )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
+                    </motion.tr>
+                  ))}
+                </AnimatePresence>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Empty State */}
       {filteredUsers.length === 0 && (
