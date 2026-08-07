@@ -17,6 +17,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { useAuth } from './context/AuthContext';
 import Login from './components/auth/Login';
 import { supabase } from './lib/supabase';
+import { checkAndRunScheduledBackup } from './services/backupService';
 
 // Settings component imported from ./components/views/Settings
 
@@ -148,57 +149,56 @@ export default function App() {
   const [divisions, setDivisions] = useState<Division[]>([]);
   const [users, setUsers] = useState<UserType[]>([]);
 
+  const fetchData = React.useCallback(async () => {
+    if (!session) return;
+    try {
+      const [divsRes, profilesRes, procRes] = await Promise.all([
+        supabase.from('divisions').select('*').order('created_at', { ascending: true }),
+        supabase.from('profiles').select('*').order('created_at', { ascending: true }),
+        supabase.from('processes').select('*').order('created_at', { ascending: false })
+      ]);
+      
+      if (divsRes.data) setDivisions(divsRes.data);
+      if (profilesRes.data) {
+        setUsers(profilesRes.data.map(u => ({
+          ...u,
+          lastAccess: u.last_access ? new Date(u.last_access).toLocaleString() : 'Nunca'
+        })));
+      }
+      if (procRes.data) {
+        setProcesses(procRes.data.map(p => ({
+          ...p,
+          patdNumber: p.patd_number,
+          dataInicio: p.data_inicio,
+          dataTermino: p.data_termino,
+          dataPunicao: p.data_punicao,
+          diasPunicao: p.dias_punicao,
+          resumoFato: p.resumo_fato,
+          nGrade: p.n_grade,
+          observacoes: p.observacoes,
+          resumoPunicao: p.resumo_punicao,
+          apuradorPosto: p.apurador_posto,
+          apuradorQuadro: p.apurador_quadro,
+          apuradorSaram: p.apurador_saram,
+          aplicadorPosto: p.aplicador_posto,
+          aplicadorQuadro: p.aplicador_quadro,
+          aplicadorCargo: p.aplicador_cargo,
+          oficioNumero: p.oficio_numero,
+          protComaer: p.prot_comaer,
+          dataOficio: p.data_oficio,
+          enquadramentoRdaer: p.enquadramento_rdaer,
+          delegacaoDoc: p.delegacao_doc || null,
+          sigadSecprom: p.sigad_secprom,
+          docArquivado: !!p.doc_arquivado
+        })));
+      }
+    } catch (err) {
+      console.error('Error fetching data from Supabase:', err);
+    }
+  }, [session]);
+
   useEffect(() => {
     if (!session) return;
-    
-    const fetchData = async () => {
-      try {
-        const [divsRes, profilesRes, procRes] = await Promise.all([
-          supabase.from('divisions').select('*').order('created_at', { ascending: true }),
-          supabase.from('profiles').select('*').order('created_at', { ascending: true }),
-          supabase.from('processes').select('*').order('created_at', { ascending: false })
-        ]);
-        
-        if (divsRes.data) setDivisions(divsRes.data);
-        if (profilesRes.data) {
-          // Map to match frontend camelCase if needed, here frontend uses lowercase names like 'name', 'posto', 'saram' which match DB except last_access
-          setUsers(profilesRes.data.map(u => ({
-            ...u,
-            lastAccess: u.last_access ? new Date(u.last_access).toLocaleString() : 'Nunca'
-          })));
-        }
-        if (procRes.data) {
-          setProcesses(procRes.data.map(p => ({
-            ...p,
-            patdNumber: p.patd_number,
-            dataInicio: p.data_inicio,
-            dataTermino: p.data_termino,
-            dataPunicao: p.data_punicao,
-            diasPunicao: p.dias_punicao,
-            resumoFato: p.resumo_fato,
-            nGrade: p.n_grade,
-            observacoes: p.observacoes,
-            resumoPunicao: p.resumo_punicao,
-            apuradorPosto: p.apurador_posto,
-            apuradorQuadro: p.apurador_quadro,
-            apuradorSaram: p.apurador_saram,
-            aplicadorPosto: p.aplicador_posto,
-            aplicadorQuadro: p.aplicador_quadro,
-            aplicadorCargo: p.aplicador_cargo,
-            oficioNumero: p.oficio_numero,
-            protComaer: p.prot_comaer,
-            dataOficio: p.data_oficio,
-            enquadramentoRdaer: p.enquadramento_rdaer,
-            delegacaoDoc: p.delegacao_doc || null,
-            sigadSecprom: p.sigad_secprom,
-            docArquivado: !!p.doc_arquivado
-          })));
-        }
-      } catch (err) {
-        console.error('Error fetching data from Supabase:', err);
-      }
-    };
-    
     fetchData();
 
     const processChannel = supabase.channel('public:processes')
@@ -207,10 +207,18 @@ export default function App() {
       })
       .subscribe();
 
+    const handleSystemRestored = () => {
+      console.log('[System Restore] Event received, refreshing all data...');
+      fetchData();
+    };
+
+    window.addEventListener('gpatd_system_restored', handleSystemRestored);
+
     return () => {
       supabase.removeChannel(processChannel);
+      window.removeEventListener('gpatd_system_restored', handleSystemRestored);
     };
-  }, [session]);
+  }, [session, fetchData]);
   const [editingProcess, setEditingProcess] = useState<any>(null);
   const [prefilledNewUser, setPrefilledNewUser] = useState<any>(null);
   const [processFilter, setProcessFilter] = useState<string>('');
@@ -251,6 +259,13 @@ export default function App() {
       email: session.user.email
     };
   }, [session, users]);
+
+  // Check for auto scheduled backup if admin
+  useEffect(() => {
+    if (currentUser && currentUser.role === 'Administrador') {
+      checkAndRunScheduledBackup(currentUser);
+    }
+  }, [currentUser]);
 
   // Redirect Apurador to processes if they land on unauthorized activeTab
   useEffect(() => {
@@ -398,52 +413,58 @@ export default function App() {
                 console.warn("[Email Dispatch] Function error (make sure RESEND_API_KEY is configured):", fnError);
                 alert(`Processo criado. Observação: Não foi possível enviar a notificação por e-mail para o apurador pois a chave RESEND_API_KEY não está configurada ou houve uma falha no disparo.`);
               } else {
-                alert(`Notificação enviada por e-mail com sucesso para o apurador ${apuradorProfile.name} (${apuradorProfile.email}) sobre a abertura do processo ${dbPayload.patd_number}.`);
+                console.log("[Email Dispatch] Notification sent successfully:", fnData);
               }
             }
-          } catch (mailErr) {
-            console.error("Error sending notification email:", mailErr);
+          } catch (e) {
+            console.error("[Email Dispatch] Unexpected error calling edge function:", e);
           }
         }
 
-        const newProcess: Process = {
-          ...newProcessData,
-          id: data.id,
-          patdNumber: data.patd_number,
-          diasPunicao: data.dias_punicao,
-          documents: data.documents || [],
-          history: data.history || initialHistory,
-          delegacaoDoc: data.delegacao_doc || null,
-          sigadSecprom: data.sigad_secprom,
-          docArquivado: !!data.doc_arquivado
-        };
-        setProcesses(prev => [newProcess, ...prev]);
+        if (data) {
+          setProcesses(prev => [{
+            ...data,
+            patdNumber: data.patd_number,
+            dataInicio: data.data_inicio,
+            dataTermino: data.data_termino,
+            dataPunicao: data.data_punicao,
+            diasPunicao: data.dias_punicao,
+            resumoFato: data.resumo_fato,
+            nGrade: data.n_grade,
+            observacoes: data.observacoes,
+            resumoPunicao: data.resumo_punicao,
+            apuradorPosto: data.apurador_posto,
+            apuradorQuadro: data.apurador_quadro,
+            apuradorSaram: data.apurador_saram,
+            aplicadorPosto: data.aplicador_posto,
+            aplicadorQuadro: data.aplicador_quadro,
+            aplicadorCargo: data.aplicador_cargo,
+            oficioNumero: data.oficio_numero,
+            protComaer: data.prot_comaer,
+            dataOficio: data.data_oficio,
+            enquadramentoRdaer: data.enquadramento_rdaer,
+            delegacaoDoc: data.delegacao_doc || null,
+            sigadSecprom: data.sigad_secprom,
+            docArquivado: !!data.doc_arquivado
+          }, ...prev]);
+        }
       }
+
       setActiveTab('processos');
-    } catch (err) {
+      setEditingProcess(null);
+    } catch (err: any) {
       console.error('Error saving process:', err);
-      alert('Erro ao salvar processo no banco de dados.');
+      alert(`Erro ao salvar processo: ${err.message || 'Verifique sua conexão com o banco de dados.'}`);
     }
   };
 
   const handleTabChange = (tab: string, filter?: string) => {
-    if (currentUser.role === 'Visualizador' && (tab === 'processos' || tab === 'novo-patd')) {
-      return;
-    }
-    if (currentUser.role === 'Apurador') {
-      const allowed = ['processos', 'novo-patd', 'documentos', 'settings'];
-      if (!allowed.includes(tab)) {
-        return;
-      }
-    }
-    if (tab === 'novo-patd') {
-      setEditingProcess(null);
-    }
-    if (filter !== undefined) {
-      setProcessFilter(filter);
-    }
-    setSearchTerm(''); // Clear global search when changing tabs
     setActiveTab(tab);
+    if (filter) {
+      setProcessFilter(filter);
+    } else {
+      setProcessFilter('');
+    }
   };
 
   const renderContent = () => {
@@ -491,7 +512,7 @@ export default function App() {
           setActiveTab('usuarios');
         }} />;
       case 'settings':
-        return <Settings currentUser={currentUser} onProfileUpdate={(updated) => setUsers(prev => prev.map(u => u.id === updated.id ? updated : u))} />;
+        return <Settings currentUser={currentUser} onProfileUpdate={(updated) => setUsers(prev => prev.map(u => u.id === updated.id ? updated : u))} onBackupRestored={fetchData} />;
       case 'documentos':
         return <Documents currentUser={currentUser} />;
       default:
