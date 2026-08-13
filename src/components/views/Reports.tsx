@@ -124,7 +124,7 @@ export default function Reports({ processes, globalSearchTerm = '', currentUser 
     ];
   }, [visibleProcesses]);
 
-  const options = useMemo(() => ({
+  const filterOptions = useMemo(() => ({
     divisoes: Array.from(new Set(visibleProcesses.map(p => p.divisao))).sort(),
     anos: (Array.from(new Set(visibleProcesses.map(p => new Date(p.dataInicio).getFullYear().toString()))) as string[]).sort((a, b) => b.localeCompare(a)),
     status: Array.from(new Set(visibleProcesses.map(p => p.status))).sort(),
