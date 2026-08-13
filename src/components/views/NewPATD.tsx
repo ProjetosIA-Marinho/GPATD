@@ -32,6 +32,7 @@ import { AnimatePresence } from 'motion/react';
 import { Division } from './Divisions';
 import { supabase } from '../../lib/supabase';
 import * as XLSX from 'xlsx';
+import { isSameDivision } from '../../utils/divisionUtils';
 
 const InputField = ({ label, icon: Icon, value, onChange, placeholder, disabled = false, type = "text", error, onBlur }: any) => (
   <div className="space-y-1.5 flex-1">
@@ -2321,7 +2322,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
 
   // Enforce division if not Admin
   useEffect(() => {
-    if (!initialData && currentUser && currentUser.role !== 'Administrador' && currentUser.divisao && formData.divisao !== currentUser.divisao) {
+    if (!initialData && currentUser && currentUser.role !== 'Administrador' && currentUser.divisao && !isSameDivision(formData.divisao, currentUser.divisao)) {
       setFormData(prev => ({
         ...prev,
         divisao: currentUser.divisao
@@ -2736,7 +2737,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
     { name: 'GSAU-YS', description: 'Grupo de Saúde de Pirassununga' },
     { name: 'CDEF', description: 'Comissão de Desporto de Educação Física' },
     { name: 'EC', description: 'Esquadrão de Comando' }
-  ]).filter(d => !currentUser || currentUser.role === 'Administrador' || d.name === currentUser.divisao);
+  ]).filter(d => !currentUser || currentUser.role === 'Administrador' || isSameDivision(d.name, currentUser.divisao));
 
   const optionsDivisao = filteredDivsList.map(d => ({ value: d.name, label: `${d.name} - ${d.description}` }));
 

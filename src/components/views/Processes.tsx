@@ -27,6 +27,7 @@ import {
 import { supabase } from '../../lib/supabase';
 import { Division } from './Divisions';
 import BulkImportModal from './BulkImportModal';
+import { isSameDivision } from '../../utils/divisionUtils';
 
 const FilterDropdown = ({ label, value, options, onChange }: any) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -201,13 +202,13 @@ export default function Processes({
     if (initialFilter) {
       setFilterStatus(initialFilter);
       // Reset other filters to ensure the specific one is visible
-      setFilterDivisao('');
+      setFilterDivisao(canFilterAllDivisions ? '' : currentUser.divisao);
       setFilterPosto('');
       setFilterPunicao('');
       setFilterAno('');
       setSearchTerm('');
     }
-  }, [initialFilter]);
+  }, [initialFilter, canFilterAllDivisions, currentUser.divisao]);
 
   const optionsDivisao = useMemo(() => Array.from(new Set(processes.map(p => p.divisao))), [processes]);
   const optionsStatus = useMemo(() => Array.from(new Set(processes.map(p => p.status))), [processes]);
@@ -292,7 +293,7 @@ export default function Processes({
   const filteredAndSortedData = useMemo(() => {
     let result = [...processes];
     
-    // Restrict Apurador to only see their processes
+    // Restrict Apurador to only see their processes; restrict Operador/other roles to their division
     if (currentUser?.role === 'Apurador') {
       const activeSaram = currentUser.saram;
       const activeName = currentUser.name?.toLowerCase() || '';
@@ -301,6 +302,8 @@ export default function Processes({
         const matchesName = p.apurador && p.apurador.toLowerCase().includes(activeName);
         return matchesSaram || matchesName;
       });
+    } else if (!canFilterAllDivisions) {
+      result = result.filter(p => isSameDivision(p.divisao, currentUser?.divisao));
     }
     
     // Filter
@@ -317,7 +320,9 @@ export default function Processes({
     }
 
     // Dropdown Filters
-    if (filterDivisao) result = result.filter(p => p.divisao === filterDivisao);
+    if (canFilterAllDivisions && filterDivisao) {
+      result = result.filter(p => isSameDivision(p.divisao, filterDivisao));
+    }
     if (filterStatus) result = result.filter(p => p.status === filterStatus);
     if (filterPosto) result = result.filter(p => p.posto === filterPosto);
     if (filterPunicao) result = result.filter(p => p.punicao === filterPunicao);

@@ -141,6 +141,32 @@ const initialUsers: UserType[] = [
   { id: '5', name: 'Cel Rocha', posto: 'Cel', saram: '2345678', divisao: 'Comando', role: 'Visualizador', status: 'Ativo', lastAccess: '2024-05-10 14:20' },
 ];
 
+const mapDbProcess = (p: any): Process => ({
+  ...p,
+  patdNumber: p.patd_number,
+  dataInicio: p.data_inicio,
+  dataTermino: p.data_termino,
+  dataPunicao: p.data_punicao,
+  diasPunicao: p.dias_punicao,
+  resumoFato: p.resumo_fato,
+  nGrade: p.n_grade,
+  observacoes: p.observacoes,
+  resumoPunicao: p.resumo_punicao,
+  apuradorPosto: p.apurador_posto,
+  apuradorQuadro: p.apurador_quadro,
+  apuradorSaram: p.apurador_saram,
+  aplicadorPosto: p.aplicador_posto,
+  aplicadorQuadro: p.aplicador_quadro,
+  aplicadorCargo: p.aplicador_cargo,
+  oficioNumero: p.oficio_numero,
+  protComaer: p.prot_comaer,
+  dataOficio: p.data_oficio,
+  enquadramentoRdaer: p.enquadramento_rdaer,
+  delegacaoDoc: p.delegacao_doc || null,
+  sigadSecprom: p.sigad_secprom,
+  docArquivado: !!p.doc_arquivado
+});
+
 export default function App() {
   const { session, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -166,31 +192,7 @@ export default function App() {
         })));
       }
       if (procRes.data) {
-        setProcesses(procRes.data.map(p => ({
-          ...p,
-          patdNumber: p.patd_number,
-          dataInicio: p.data_inicio,
-          dataTermino: p.data_termino,
-          dataPunicao: p.data_punicao,
-          diasPunicao: p.dias_punicao,
-          resumoFato: p.resumo_fato,
-          nGrade: p.n_grade,
-          observacoes: p.observacoes,
-          resumoPunicao: p.resumo_punicao,
-          apuradorPosto: p.apurador_posto,
-          apuradorQuadro: p.apurador_quadro,
-          apuradorSaram: p.apurador_saram,
-          aplicadorPosto: p.aplicador_posto,
-          aplicadorQuadro: p.aplicador_quadro,
-          aplicadorCargo: p.aplicador_cargo,
-          oficioNumero: p.oficio_numero,
-          protComaer: p.prot_comaer,
-          dataOficio: p.data_oficio,
-          enquadramentoRdaer: p.enquadramento_rdaer,
-          delegacaoDoc: p.delegacao_doc || null,
-          sigadSecprom: p.sigad_secprom,
-          docArquivado: !!p.doc_arquivado
-        })));
+        setProcesses(procRes.data.map(mapDbProcess));
       }
     } catch (err) {
       console.error('Error fetching data from Supabase:', err);
@@ -202,8 +204,16 @@ export default function App() {
     fetchData();
 
     const processChannel = supabase.channel('public:processes')
-      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'processes' }, (payload) => {
-        setProcesses(prev => prev.filter(p => p.id !== payload.old.id));
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'processes' }, (payload) => {
+        if (payload.eventType === 'DELETE' && payload.old) {
+          setProcesses(prev => prev.filter(p => p.id !== payload.old.id));
+        } else if (payload.eventType === 'INSERT' && payload.new) {
+          const newProc = mapDbProcess(payload.new);
+          setProcesses(prev => [newProc, ...prev.filter(p => p.id !== newProc.id)]);
+        } else if (payload.eventType === 'UPDATE' && payload.new) {
+          const updatedProc = mapDbProcess(payload.new);
+          setProcesses(prev => prev.map(p => p.id === updatedProc.id ? { ...p, ...updatedProc } : p));
+        }
       })
       .subscribe();
 

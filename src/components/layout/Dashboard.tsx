@@ -34,6 +34,7 @@ import {
   Legend,
   LabelList
 } from 'recharts';
+import { isSameDivision } from '../../utils/divisionUtils';
 
 const ParallaxCard = ({ children, offset = 10, className = "" }: { children: React.ReactNode, offset?: number, className?: string, key?: any }) => {
   const ref = useRef(null);
@@ -130,9 +131,21 @@ export default function Dashboard({
   }, [processes]);
 
   const displayProcesses = useMemo(() => {
-    let result = canFilterAllDivisions ? processes : processes.filter(p => p.divisao === currentUser.divisao);
+    let result = [...processes];
+    if (currentUser?.role === 'Apurador') {
+      const activeSaram = currentUser.saram;
+      const activeName = currentUser.name?.toLowerCase() || '';
+      result = result.filter(p => {
+        const matchesSaram = p.apuradorSaram && p.apuradorSaram === activeSaram;
+        const matchesName = p.apurador && p.apurador.toLowerCase().includes(activeName);
+        return matchesSaram || matchesName;
+      });
+    } else if (!canFilterAllDivisions) {
+      result = result.filter(p => isSameDivision(p.divisao, currentUser?.divisao));
+    }
+
     if (canFilterAllDivisions && selectedDivisao) {
-      result = result.filter(p => p.divisao === selectedDivisao);
+      result = result.filter(p => isSameDivision(p.divisao, selectedDivisao));
     }
     if (selectedAno) {
       result = result.filter(p => p.patdNumber.endsWith(selectedAno));

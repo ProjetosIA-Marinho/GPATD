@@ -19,6 +19,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { Process } from './Processes';
+import { isSameDivision } from '../../utils/divisionUtils';
 
 const FilterDropdown = ({ label, value, options, onChange }: any) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -29,40 +30,40 @@ const FilterDropdown = ({ label, value, options, onChange }: any) => {
   };
   
   return (
-    <div className="relative">
-      <button 
+    <div className="relative flex-1 min-w-[140px]">
+      <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1 mb-1 block">{label}</label>
+      <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 h-10 px-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all font-bold text-[10px] uppercase tracking-wider shadow-sm"
+        className="w-full h-11 px-3.5 rounded-xl bg-white/40 dark:bg-slate-950/30 backdrop-blur-3xl border border-slate-200/80 dark:border-slate-800/80 hover:bg-white/60 dark:hover:bg-slate-950/50 flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-200 transition-all group"
       >
-        {label}: <span className="text-indigo-600 dark:text-indigo-400">{value || 'Todos'}</span>
-        <ChevronDown size={14} className={`transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+        <span className="truncate">{value || `Todos ${label}s`}</span>
+        <ChevronDown size={14} className={`text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       <AnimatePresence>
         {isOpen && (
           <>
-            <div className="fixed inset-0 z-40 bg-black/5 dark:bg-black/10" onClick={() => setIsOpen(false)} />
+            <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
             <motion.div
-              initial={{ opacity: 0, y: 4, scale: 0.98 }}
+              initial={{ opacity: 0, y: -8, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 4, scale: 0.98 }}
-              transition={{ duration: 0.15 }}
-              className="absolute left-0 top-full mt-2 p-1.5 z-50 bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-100 dark:border-slate-800 min-w-[180px] max-h-64 overflow-y-auto custom-scrollbar"
+              exit={{ opacity: 0, y: -8, scale: 0.95 }}
+              className="absolute left-0 right-0 top-full mt-1.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 max-h-56 overflow-y-auto"
             >
-              <button 
+              <button
                 type="button"
                 onClick={() => handleSelect('')}
-                className={`w-full px-3 py-2 text-left text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all ${!value ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-500'}`}
+                className={`w-full px-3 py-2 text-left text-xs font-medium transition-colors hover:bg-indigo-50 dark:hover:bg-indigo-950/50 ${!value ? 'text-indigo-600 dark:text-indigo-400 font-bold bg-indigo-50/50 dark:bg-indigo-950/30' : 'text-slate-600 dark:text-slate-400'}`}
               >
-                Todos
+                Todos {label}s
               </button>
               {options.map((opt: string) => (
-                <button 
+                <button
                   key={opt}
                   type="button"
                   onClick={() => handleSelect(opt)}
-                  className={`w-full px-3 py-2 text-left text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all mt-1 ${value === opt ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-500'}`}
+                  className={`w-full px-3 py-2 text-left text-xs font-medium transition-colors hover:bg-indigo-50 dark:hover:bg-indigo-950/50 ${value === opt ? 'text-indigo-600 dark:text-indigo-400 font-bold bg-indigo-50/50 dark:bg-indigo-950/30' : 'text-slate-700 dark:text-slate-300'}`}
                 >
                   {opt}
                 </button>
@@ -75,7 +76,7 @@ const FilterDropdown = ({ label, value, options, onChange }: any) => {
   );
 };
 
-interface ReportsProps {
+export interface ReportsProps {
   processes: Process[];
   globalSearchTerm?: string;
   currentUser: any;
@@ -95,9 +96,18 @@ export default function Reports({ processes, globalSearchTerm = '', currentUser 
   const [showPreview, setShowPreview] = useState(false);
 
   const visibleProcesses = useMemo(() => {
+    if (currentUser?.role === 'Apurador') {
+      const activeSaram = currentUser.saram;
+      const activeName = currentUser.name?.toLowerCase() || '';
+      return processes.filter(p => {
+        const matchesSaram = p.apuradorSaram && p.apuradorSaram === activeSaram;
+        const matchesName = p.apurador && p.apurador.toLowerCase().includes(activeName);
+        return matchesSaram || matchesName;
+      });
+    }
     if (canFilterAllDivisions) return processes;
-    return processes.filter(p => p.divisao === currentUser.divisao);
-  }, [processes, canFilterAllDivisions, currentUser.divisao]);
+    return processes.filter(p => isSameDivision(p.divisao, currentUser.divisao));
+  }, [processes, canFilterAllDivisions, currentUser]);
 
   // Stats calculation
   const stats = useMemo(() => {
@@ -108,14 +118,13 @@ export default function Reports({ processes, globalSearchTerm = '', currentUser 
     
     return [
       { label: 'Total de PATDs', value: total, icon: FileText, color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
-      { label: 'Em Andamento', value: inProgress, icon: Clock, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/20' },
-      { label: 'Concluídos', value: completed, icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
-      { label: 'Suspensos', value: suspended, icon: AlertTriangle, color: 'text-rose-500', bg: 'bg-rose-50 dark:bg-rose-900/20' },
+      { label: 'Concluídos', value: completed, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+      { label: 'Em Andamento', value: inProgress, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/20' },
+      { label: 'Suspensos', value: suspended, icon: AlertTriangle, color: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-900/20' },
     ];
   }, [visibleProcesses]);
 
-  // Unique values for filters
-  const filterOptions = useMemo(() => ({
+  const options = useMemo(() => ({
     divisoes: Array.from(new Set(visibleProcesses.map(p => p.divisao))).sort(),
     anos: (Array.from(new Set(visibleProcesses.map(p => new Date(p.dataInicio).getFullYear().toString()))) as string[]).sort((a, b) => b.localeCompare(a)),
     status: Array.from(new Set(visibleProcesses.map(p => p.status))).sort(),
@@ -135,7 +144,7 @@ export default function Reports({ processes, globalSearchTerm = '', currentUser 
 
       return (
         (effectiveSearch === '' || p.patdNumber.toLowerCase().includes(effectiveSearch.toLowerCase()) || p.militar.toLowerCase().includes(effectiveSearch.toLowerCase())) &&
-        (filterDivisao === '' || p.divisao === filterDivisao) &&
+        (filterDivisao === '' || isSameDivision(p.divisao, filterDivisao)) &&
         (filterAno === '' || pAno === filterAno) &&
         (filterStatus === '' || p.status === filterStatus) &&
         (filterPosto === '' || p.posto === filterPosto) &&
