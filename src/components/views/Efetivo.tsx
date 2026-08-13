@@ -608,6 +608,34 @@ export default function Efetivo({ currentUser, onNewPATDFromEfetivo, onNewUserFr
             Modelo Planilha
           </button>
 
+          {/* Compact Dropzone Button in Top Header */}
+          <div 
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+            className={`flex items-center gap-2.5 h-11 px-4 border-2 border-dashed rounded-xl cursor-pointer transition-all duration-300 relative group/drop select-none ${
+              isDragOver 
+                ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 scale-105 shadow-md' 
+                : 'border-indigo-400/50 dark:border-indigo-500/30 bg-indigo-50/40 dark:bg-indigo-950/20 text-indigo-700 dark:text-indigo-300 hover:border-indigo-500 hover:bg-indigo-100/50 dark:hover:bg-indigo-900/30'
+            }`}
+            title="Clique para selecionar ou arraste a planilha de Efetivo aqui (.xlsx, .xls, .csv)"
+          >
+            <div className="flex items-center justify-center shrink-0">
+              {isImporting ? <RefreshCw size={16} className="animate-spin text-indigo-600" /> : <UploadCloud size={18} className="group-hover/drop:scale-110 transition-transform" />}
+            </div>
+            <span className="font-bold text-xs uppercase tracking-wider whitespace-nowrap">
+              {isDragOver ? 'Solte a planilha aqui' : 'Importar Planilha (Arraste aqui)'}
+            </span>
+            <input 
+              type="file" 
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              accept=".xlsx,.xls,.csv"
+              className="hidden" 
+            />
+          </div>
+
           <button 
             onClick={() => setModalState({
               isOpen: true,
@@ -629,58 +657,33 @@ export default function Efetivo({ currentUser, onNewPATDFromEfetivo, onNewUserFr
         </div>
       </header>
 
-      {/* Upload area */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-1 space-y-4">
-          <div 
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            onClick={() => fileInputRef.current?.click()}
-            className={`py-12 px-6 border-2 border-dashed rounded-[2rem] flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 relative group/drop bg-white dark:bg-slate-900 ${
-              isDragOver 
-                ? 'border-indigo-500 bg-indigo-50/20 dark:bg-indigo-950/10 shadow-lg shadow-indigo-500/5' 
-                : 'border-slate-200 dark:border-slate-800 hover:border-indigo-500/50'
-            }`}
-          >
-            <div className="h-14 w-14 flex items-center justify-center rounded-2xl bg-indigo-50 dark:bg-slate-850 text-indigo-600 dark:text-indigo-400 mb-4 shadow-sm group-hover/drop:scale-110 transition-transform">
-              {isImporting ? <RefreshCw size={24} className="animate-spin" /> : <UploadCloud size={24} />}
-            </div>
-            <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-1">
-              Arraste a planilha de Efetivo aqui
-            </h4>
-            <p className="text-[10px] text-slate-455 dark:text-slate-500">
-              Ou clique para selecionar. Aceita arquivos .xlsx, .xls ou .csv.
-            </p>
-            <input 
-              type="file" 
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              accept=".xlsx,.xls,.csv"
-              className="hidden" 
-            />
+      {uploadMessage && (
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`p-4 rounded-2xl flex items-center justify-between gap-3 border text-xs font-semibold ${
+            uploadMessage.type === 'success' 
+              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400' 
+              : 'bg-rose-500/10 border-rose-500/20 text-rose-600 dark:text-rose-455'
+          }`}
+        >
+          <div className="flex items-center gap-2.5">
+            {uploadMessage.type === 'success' ? <CheckCircle2 size={18} className="shrink-0" /> : <AlertCircle size={18} className="shrink-0" />}
+            <span>{uploadMessage.text}</span>
           </div>
+          <button 
+            onClick={() => setUploadMessage(null)}
+            className="p-1 hover:bg-black/5 dark:hover:bg-white/10 rounded-lg transition-colors"
+          >
+            <X size={14} />
+          </button>
+        </motion.div>
+      )}
 
-          {uploadMessage && (
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={`p-4 rounded-2xl flex items-start gap-3 border text-xs font-semibold ${
-                uploadMessage.type === 'success' 
-                  ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400' 
-                  : 'bg-rose-500/10 border-rose-500/20 text-rose-600 dark:text-rose-455'
-              }`}
-            >
-              {uploadMessage.type === 'success' ? <CheckCircle2 size={16} className="shrink-0 mt-0.5" /> : <AlertCircle size={16} className="shrink-0 mt-0.5" />}
-              <span>{uploadMessage.text}</span>
-            </motion.div>
-          )}
-        </div>
-
-        {/* Database List */}
-        <div className="lg:col-span-2">
-          <div className="rounded-[2.5rem] bg-white dark:bg-slate-900 shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden relative min-h-[300px]">
-            <div className="overflow-x-auto custom-scrollbar">
+      {/* Full-width Database List */}
+      <div className="w-full">
+        <div className="rounded-[2.5rem] bg-white dark:bg-slate-900 shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden relative min-h-[300px]">
+          <div className="overflow-x-auto custom-scrollbar">
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-slate-50/50 dark:bg-slate-800/30 text-left">
@@ -771,7 +774,6 @@ export default function Efetivo({ currentUser, onNewPATDFromEfetivo, onNewUserFr
             </div>
           </div>
         </div>
-      </div>
 
       <EditRecordModal 
         isOpen={modalState.isOpen} 

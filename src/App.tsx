@@ -484,7 +484,7 @@ export default function App() {
       case 'processos':
         return <Processes processes={processes} setProcesses={setProcesses} divisions={divisions} setActiveTab={handleTabChange} onEdit={handleEditProcess} onNew={handleNewPATD} initialFilter={processFilter} onClearFilter={() => setProcessFilter('')} globalSearchTerm={searchTerm} currentUser={currentUser} />;
       case 'divisoes':
-        return <Divisions divisions={divisions} setDivisions={setDivisions} isAdmin={currentUser.role === 'Administrador'} globalSearchTerm={searchTerm} />;
+        return <Divisions divisions={divisions} setDivisions={setDivisions} isAdmin={currentUser.role === 'Administrador'} currentUser={currentUser} globalSearchTerm={searchTerm} />;
       case 'usuarios':
         return <Users users={users} setUsers={setUsers} divisions={divisions} globalSearchTerm={searchTerm} isAdmin={currentUser.role === 'Administrador'} loggedUser={currentUser} initialPrefill={prefilledNewUser} onClearPrefill={() => setPrefilledNewUser(null)} />;
       case 'relatorio':

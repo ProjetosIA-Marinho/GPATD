@@ -193,7 +193,7 @@ export default function Shell({
   ];
 
   const adminNavigation = [
-    ...(currentUser?.role === 'Administrador' ? [{ id: 'divisoes', name: 'Divisões', icon: Building2 }] : []),
+    ...(currentUser?.role === 'Administrador' || currentUser?.role === 'Operador' ? [{ id: 'divisoes', name: 'Divisões', icon: Building2 }] : []),
     { id: 'settings', name: 'Configurações', icon: Settings },
   ];
 

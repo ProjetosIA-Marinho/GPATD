@@ -17,6 +17,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { isSameDivision } from '../../utils/divisionUtils';
 
 export interface Division {
   id: string;
@@ -31,9 +32,10 @@ interface DivisionsProps {
   setDivisions: React.Dispatch<React.SetStateAction<Division[]>>;
   isAdmin?: boolean;
   globalSearchTerm?: string;
+  currentUser?: any;
 }
 
-export default function Divisions({ divisions, setDivisions, isAdmin = true, globalSearchTerm = '' }: DivisionsProps) {
+export default function Divisions({ divisions, setDivisions, isAdmin = true, globalSearchTerm = '', currentUser }: DivisionsProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDivision, setEditingDivision] = useState<Division | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -135,13 +137,18 @@ export default function Divisions({ divisions, setDivisions, isAdmin = true, glo
     }
   };
 
+  const canManageSectors = (division: Division) => {
+    if (isAdmin) return true;
+    if (currentUser?.role === 'Operador' && isSameDivision(division.name, currentUser?.divisao)) return true;
+    return false;
+  };
+
   const handleAddSector = async (divisionId: string) => {
-    if (!isAdmin) return;
+    const division = divisions.find(d => d.id === divisionId);
+    if (!division || !canManageSectors(division)) return;
+
     const sectorName = newSectorName[divisionId];
     if (!sectorName?.trim()) return;
-
-    const division = divisions.find(d => d.id === divisionId);
-    if (!division) return;
     
     const newSectors = [...(division.sectors || []), sectorName.trim()];
 
@@ -158,10 +165,8 @@ export default function Divisions({ divisions, setDivisions, isAdmin = true, glo
   };
 
   const handleRemoveSector = async (divisionId: string, sectorIndex: number) => {
-    if (!isAdmin) return;
-    
     const division = divisions.find(d => d.id === divisionId);
-    if (!division) return;
+    if (!division || !canManageSectors(division)) return;
     
     const newSectors = [...(division.sectors || [])];
     newSectors.splice(sectorIndex, 1);
@@ -357,7 +362,7 @@ export default function Divisions({ divisions, setDivisions, isAdmin = true, glo
                     division.sectors.map((sector, sIdx) => (
                       <div key={sIdx} className="flex items-center justify-between p-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-850 group/sector">
                         <span className="text-[11px] font-medium text-slate-700 dark:text-slate-300">{sector}</span>
-                        {isAdmin && (
+                        {canManageSectors(division) && (
                           <button 
                             onClick={() => handleRemoveSector(division.id, sIdx)}
                             className="opacity-0 group-hover/sector:opacity-100 p-0.5 text-slate-400 hover:text-rose-500 transition-all"
@@ -374,7 +379,7 @@ export default function Divisions({ divisions, setDivisions, isAdmin = true, glo
                   )}
                 </div>
 
-                {isAdmin && (
+                {canManageSectors(division) && (
                   <div className="mt-auto pt-2.5 border-t border-slate-100 dark:border-slate-800 shrink-0">
                     <div className="relative group/input">
                       <input 
