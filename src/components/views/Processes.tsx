@@ -28,6 +28,7 @@ import { supabase } from '../../lib/supabase';
 import { Division } from './Divisions';
 import BulkImportModal from './BulkImportModal';
 import { isSameDivision } from '../../utils/divisionUtils';
+import Pagination, { PageSizeOption } from '../common/Pagination';
 
 const FilterDropdown = ({ label, value, options, onChange }: any) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -154,7 +155,8 @@ export default function Processes({
   const canFilterAllDivisions = currentUser.role === 'Administrador' || currentUser.role === 'Visualizador';
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<{ key: keyof Process; direction: 'asc' | 'desc' } | null>(null);
-  const [visibleItems, setVisibleItems] = useState(20);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState<PageSizeOption>(10);
   const [selectedProcess, setSelectedProcess] = useState<Process | null>(null);
   const [processToDelete, setProcessToDelete] = useState<Process | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -331,10 +333,12 @@ export default function Processes({
     // Sort
     if (sortConfig) {
       result.sort((a, b) => {
-        if (a[sortConfig.key] < b[sortConfig.key]) {
+        const aValue = a[sortConfig.key] || '';
+        const bValue = b[sortConfig.key] || '';
+        if (aValue < bValue) {
           return sortConfig.direction === 'asc' ? -1 : 1;
         }
-        if (a[sortConfig.key] > b[sortConfig.key]) {
+        if (aValue > bValue) {
           return sortConfig.direction === 'asc' ? 1 : -1;
         }
         return 0;
@@ -344,30 +348,16 @@ export default function Processes({
     return result;
   }, [processes, searchTerm, globalSearchTerm, sortConfig, filterDivisao, filterStatus, filterPosto, filterPunicao, filterAno]);
 
-  // Reset visible items when filters change
+  // Reset page to 1 when filters or search change
   React.useEffect(() => {
-    setVisibleItems(20);
-  }, [searchTerm, globalSearchTerm, filterDivisao, filterStatus, filterPosto, filterPunicao, filterAno]);
+    setCurrentPage(1);
+  }, [searchTerm, globalSearchTerm, filterDivisao, filterStatus, filterPosto, filterPunicao, filterAno, sortConfig]);
 
-  // Infinite Scroll Logic
-  React.useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && visibleItems < filteredAndSortedData.length) {
-          setVisibleItems(prev => prev + 20);
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (loadingRef.current) {
-      observer.observe(loadingRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, [visibleItems, filteredAndSortedData.length]);
-
-  const displayedData = filteredAndSortedData.slice(0, visibleItems);
+  const displayedData = useMemo(() => {
+    if (pageSize === 'all') return filteredAndSortedData;
+    const start = (currentPage - 1) * (pageSize as number);
+    return filteredAndSortedData.slice(start, start + (pageSize as number));
+  }, [filteredAndSortedData, currentPage, pageSize]);
 
   const getStatusStyle = (status: Process['status']) => {
     switch (status) {
@@ -523,6 +513,7 @@ export default function Processes({
                   { key: 'patdNumber', label: 'Nº PATD' },
                   { key: 'militar', label: 'Militar Arrolado' },
                   { key: 'posto', label: 'Posto' },
+                  { key: 'apurador', label: 'Apurador' },
                   { key: 'divisao', label: 'Divisão' },
                   { key: 'dataInicio', label: 'Data de Início' },
                   { key: 'dataTermino', label: 'Data de Término' },
@@ -595,6 +586,30 @@ export default function Processes({
                           <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
                           <span className="text-[9px] font-bold text-indigo-500 uppercase tracking-tighter">{process.especialidade}</span>
                         </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-5">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                          {process.apurador || '-'}
+                        </span>
+                        {(process.apuradorPosto || process.apuradorSaram) && (
+                          <div className="flex items-center gap-1.5 mt-0.5 opacity-60">
+                            {process.apuradorPosto && (
+                              <span className="text-[9px] font-black text-indigo-500 uppercase tracking-tighter">
+                                {process.apuradorPosto}
+                              </span>
+                            )}
+                            {process.apuradorPosto && process.apuradorSaram && (
+                              <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
+                            )}
+                            {process.apuradorSaram && (
+                              <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 tracking-wider">
+                                SARAM: {process.apuradorSaram}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-5">
@@ -692,41 +707,15 @@ export default function Processes({
           </table>
         </div>
 
-        {/* Loading Ref for Infinite Scroll */}
-        {visibleItems < filteredAndSortedData.length && (
-          <div ref={loadingRef} className="py-10 flex justify-center">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce [animation-delay:-0.3s]" />
-              <div className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce [animation-delay:-0.15s]" />
-              <div className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce" />
-            </div>
-          </div>
-        )}
-
-        {/* Empty State */}
-        {filteredAndSortedData.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 text-center relative z-10">
-            <div className="w-20 h-20 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-300 dark:text-slate-700 mb-6 border border-slate-100 dark:border-slate-800">
-              <FileText size={40} />
-            </div>
-            <h3 className="text-xl font-display font-bold text-slate-900 dark:text-white">Nenhum processo encontrado</h3>
-            <p className="text-slate-500 dark:text-slate-400 mt-1 max-w-xs mx-auto">Não encontramos registros correspondentes à sua pesquisa ou filtros.</p>
-            <button 
-              onClick={() => setSearchTerm('')}
-              className="mt-6 text-indigo-600 dark:text-indigo-400 font-black text-[10px] uppercase tracking-[0.2em] hover:tracking-[0.3em] transition-all"
-            >
-              Limpar Pesquisa
-            </button>
-          </div>
-        )}
-
-        {/* Footer info */}
-        <div className="px-8 py-5 border-t border-slate-50 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-800/20 flex flex-col sm:flex-row items-center justify-between gap-4 relative z-10">
-          <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
-            Mostrando <span className="text-slate-900 dark:text-white">{displayedData.length}</span> de 
-            <span className="text-slate-900 dark:text-white ml-1">{filteredAndSortedData.length}</span> resultados
-          </p>
-        </div>
+        {/* Pagination */}
+        <Pagination
+          currentPage={currentPage}
+          totalItems={filteredAndSortedData.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+          className="relative z-10"
+        />
       </div>
 
       {/* DETAIL MODAL */}

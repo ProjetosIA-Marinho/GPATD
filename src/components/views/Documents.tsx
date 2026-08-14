@@ -24,6 +24,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from '../../lib/supabase';
 import DocumentProcessor from './DocumentProcessor';
+import Pagination, { PageSizeOption } from '../common/Pagination';
 
 interface Document {
   id: string;
@@ -55,6 +56,8 @@ export default function Documents({ currentUser }: { currentUser: any }) {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState<PageSizeOption>(10);
   
   // Modals
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
@@ -95,6 +98,23 @@ export default function Documents({ currentUser }: { currentUser: any }) {
       return matchesSearch && matchesCategory;
     });
   }, [folders, searchTerm, filterCategory]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterCategory, selectedFolder]);
+
+  const displayedFolders = useMemo(() => {
+    if (pageSize === 'all') return filteredFolders;
+    const start = (currentPage - 1) * (pageSize as number);
+    return filteredFolders.slice(start, start + (pageSize as number));
+  }, [filteredFolders, currentPage, pageSize]);
+
+  const displayedDocuments = useMemo(() => {
+    if (!selectedFolder) return [];
+    if (pageSize === 'all') return selectedFolder.documents;
+    const start = (currentPage - 1) * (pageSize as number);
+    return selectedFolder.documents.slice(start, start + (pageSize as number));
+  }, [selectedFolder, currentPage, pageSize]);
 
   const handleSaveFolder = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -443,7 +463,7 @@ export default function Documents({ currentUser }: { currentUser: any }) {
                     </div>
                   </motion.div>
                 )}
-                {filteredFolders.map((folder) => (
+                {displayedFolders.map((folder) => (
                   <motion.div
                     layout
                     initial={{ opacity: 0, scale: 0.9 }}
@@ -544,7 +564,7 @@ export default function Documents({ currentUser }: { currentUser: any }) {
                           {isAdmin && <td className="py-4 px-6"></td>}
                         </motion.tr>
                       )}
-                      {filteredFolders.map((folder) => (
+                      {displayedFolders.map((folder) => (
                         <motion.tr
                           layout
                           initial={{ opacity: 0 }}
@@ -595,6 +615,17 @@ export default function Documents({ currentUser }: { currentUser: any }) {
               </div>
             </div>
           )}
+
+          {/* Pagination for Folders */}
+          <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden mt-6">
+            <Pagination
+              currentPage={currentPage}
+              totalItems={filteredFolders.length}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={setPageSize}
+            />
+          </div>
         </>
       ) : (
         <div className="space-y-6">
@@ -633,7 +664,7 @@ export default function Documents({ currentUser }: { currentUser: any }) {
           ) : viewMode === 'grid' ? (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               <AnimatePresence mode="popLayout">
-                {selectedFolder.documents.map((doc) => (
+                {displayedDocuments.map((doc) => (
                   <motion.div
                     layout
                     initial={{ opacity: 0, y: 20 }}
@@ -708,7 +739,7 @@ export default function Documents({ currentUser }: { currentUser: any }) {
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
                     <AnimatePresence mode="popLayout">
-                      {selectedFolder.documents.map((doc) => (
+                      {displayedDocuments.map((doc) => (
                         <motion.tr
                           layout
                           initial={{ opacity: 0 }}
@@ -770,6 +801,19 @@ export default function Documents({ currentUser }: { currentUser: any }) {
                   </tbody>
                 </table>
               </div>
+            </div>
+          )}
+
+          {/* Pagination for Documents inside folder */}
+          {selectedFolder.documents.length > 0 && (
+            <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden mt-6">
+              <Pagination
+                currentPage={currentPage}
+                totalItems={selectedFolder.documents.length}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={setPageSize}
+              />
             </div>
           )}
         </div>

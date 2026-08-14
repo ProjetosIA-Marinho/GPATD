@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import { Division } from './Divisions';
 import { supabase } from '../../lib/supabase';
+import Pagination, { PageSizeOption } from '../common/Pagination';
 
 export interface User {
   id: string;
@@ -158,6 +159,8 @@ export default function Users({ users, setUsers, divisions, globalSearchTerm = '
   const [showPassword, setShowPassword] = useState(false);
   const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState<PageSizeOption>(10);
 
   // Bulk Email State
   const [isBulkEmailModalOpen, setIsBulkEmailModalOpen] = useState(false);
@@ -361,6 +364,16 @@ Seção de Investigação e Justiça (SIJ)`);
     const matchesRole = filterRole === 'all' || user.role === filterRole;
     return matchesSearch && matchesRole;
   });
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, globalSearchTerm, filterRole]);
+
+  const displayedUsers = React.useMemo(() => {
+    if (pageSize === 'all') return filteredUsers;
+    const start = (currentPage - 1) * (pageSize as number);
+    return filteredUsers.slice(start, start + (pageSize as number));
+  }, [filteredUsers, currentPage, pageSize]);
 
   const getRoleBadgeStyle = (role: User['role']) => {
     switch (role) {
@@ -612,7 +625,7 @@ Seção de Investigação e Justiça (SIJ)`);
       {viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <AnimatePresence mode='popLayout'>
-            {filteredUsers.map((user, idx) => (
+            {displayedUsers.map((user, idx) => (
               <motion.div
                 key={user.id}
                 layout
@@ -782,7 +795,7 @@ Seção de Investigação e Justiça (SIJ)`);
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
                 <AnimatePresence mode="popLayout">
-                  {filteredUsers.map((user) => (
+                  {displayedUsers.map((user) => (
                     <motion.tr
                       key={user.id}
                       layout
@@ -861,6 +874,17 @@ Seção de Investigação e Justiça (SIJ)`);
           </div>
         </div>
       )}
+
+      {/* Pagination */}
+      <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        <Pagination
+          currentPage={currentPage}
+          totalItems={filteredUsers.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+        />
+      </div>
 
       {/* Empty State */}
       {filteredUsers.length === 0 && (

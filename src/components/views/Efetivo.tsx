@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { supabase } from '../../lib/supabase';
+import Pagination, { PageSizeOption } from '../common/Pagination';
 
 const FilterDropdown = ({ label, value, options, onChange }: any) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -571,6 +572,19 @@ export default function Efetivo({ currentUser, onNewPATDFromEfetivo, onNewUserFr
     return result;
   }, [records, searchTerm, filterDivisao, filterPosto]);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState<PageSizeOption>(10);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterDivisao, filterPosto]);
+
+  const displayedRecords = useMemo(() => {
+    if (pageSize === 'all') return filteredRecords;
+    const start = (currentPage - 1) * (pageSize as number);
+    return filteredRecords.slice(start, start + (pageSize as number));
+  }, [filteredRecords, currentPage, pageSize]);
+
   return (
     <div className="space-y-8 pb-10">
       <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
@@ -712,7 +726,7 @@ export default function Efetivo({ currentUser, onNewPATDFromEfetivo, onNewUserFr
                       </td>
                     </tr>
                   ) : (
-                    filteredRecords.map((record) => (
+                    displayedRecords.map((record) => (
                       <tr key={record.saram} className="hover:bg-slate-50/50 dark:hover:bg-indigo-500/5 transition-colors">
                         <td className="px-6 py-4 pl-8 font-mono font-bold text-slate-900 dark:text-white text-xs">{record.saram}</td>
                         <td className="px-6 py-4 text-xs font-semibold text-slate-700 dark:text-slate-350">
@@ -769,9 +783,13 @@ export default function Efetivo({ currentUser, onNewPATDFromEfetivo, onNewUserFr
               </table>
             </div>
             
-            <div className="px-8 py-4 border-t border-slate-50 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-800/20 text-right text-[10px] font-black uppercase text-slate-400 tracking-wider">
-              Total de registros: {filteredRecords.length}
-            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalItems={filteredRecords.length}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={setPageSize}
+            />
           </div>
         </div>
 

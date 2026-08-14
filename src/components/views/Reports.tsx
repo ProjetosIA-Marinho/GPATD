@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { Process } from './Processes';
 import { isSameDivision } from '../../utils/divisionUtils';
+import Pagination, { PageSizeOption } from '../common/Pagination';
 
 const FilterDropdown = ({ label, value, options, onChange }: any) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -94,6 +95,19 @@ export default function Reports({ processes, globalSearchTerm = '', currentUser 
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [showPreview, setShowPreview] = useState(false);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState<PageSizeOption>(10);
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterDivisao, filterAno, filterStatus, filterPosto, filterPunicao, startDate, endDate]);
+
+  const displayedProcesses = useMemo(() => {
+    if (pageSize === 'all') return filteredProcesses;
+    const start = (currentPage - 1) * (pageSize as number);
+    return filteredProcesses.slice(start, start + (pageSize as number));
+  }, [filteredProcesses, currentPage, pageSize]);
 
   const visibleProcesses = useMemo(() => {
     if (currentUser?.role === 'Apurador') {
@@ -570,7 +584,7 @@ export default function Reports({ processes, globalSearchTerm = '', currentUser 
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
-              {filteredProcesses.map((p) => (
+              {displayedProcesses.map((p) => (
                 <tr key={p.id} className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                   <td className="py-4 px-4">
                     <span className="text-xs font-black text-slate-900 dark:text-white font-mono">{p.patdNumber}</span>
@@ -661,6 +675,16 @@ export default function Reports({ processes, globalSearchTerm = '', currentUser 
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        <Pagination
+          currentPage={currentPage}
+          totalItems={filteredProcesses.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+          className="mt-6 rounded-2xl"
+        />
       </div>
     </div>
   );
