@@ -861,10 +861,17 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
     
-    const formatDateStr = (dateStr: string) => {
-      if (!dateStr) return '___/___/_____';
-      const [year, month, day] = dateStr.split('-');
-      return `${day}/${month}/${year}`;
+    const formatDateStr = (dateStr: any) => {
+      if (!dateStr || typeof dateStr !== 'string') return '___/___/_____';
+      const clean = dateStr.trim();
+      if (!clean) return '___/___/_____';
+      if (/^\d{2}\/\d{2}\/\d{4}$/.test(clean)) return clean;
+      const cleanDate = clean.split('T')[0];
+      const parts = cleanDate.split('-');
+      if (parts.length === 3 && parts[0].length === 4) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      }
+      return clean;
     };
 
     const getDocHTML = () => {
@@ -1243,10 +1250,17 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
     
-    const formatDateStr = (dateStr: string) => {
-      if (!dateStr) return '___/___/_____';
-      const [year, month, day] = dateStr.split('-');
-      return `${day}/${month}/${year}`;
+    const formatDateStr = (dateStr: any) => {
+      if (!dateStr || typeof dateStr !== 'string') return '___/___/_____';
+      const clean = dateStr.trim();
+      if (!clean) return '___/___/_____';
+      if (/^\d{2}\/\d{2}\/\d{4}$/.test(clean)) return clean;
+      const cleanDate = clean.split('T')[0];
+      const parts = cleanDate.split('-');
+      if (parts.length === 3 && parts[0].length === 4) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      }
+      return clean;
     };
 
     const css = `
@@ -2267,7 +2281,8 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
     let active = true;
 
     const fetchNextNumber = async () => {
-      const divShort = formData.divisao.split(' ')[0].toUpperCase();
+      const divStr = String(formData?.divisao || 'DOA');
+      const divShort = (divStr.split(' ')[0] || 'DOA').toUpperCase();
       let nextNum = 1;
 
       try {
@@ -3568,10 +3583,17 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                 {/* Preview Container */}
                 <div className="flex-1 bg-slate-100 dark:bg-slate-900/40 p-6 overflow-y-auto custom-scrollbar flex flex-col items-center justify-start min-h-0">
                   {(() => {
-                    const formatDateStr = (dateStr: string) => {
-                      if (!dateStr) return '___/___/_____';
-                      const [year, month, day] = dateStr.split('-');
-                      return `${day}/${month}/${year}`;
+                    const formatDateStr = (dateStr: any) => {
+                      if (!dateStr || typeof dateStr !== 'string') return '___/___/_____';
+                      const clean = dateStr.trim();
+                      if (!clean) return '___/___/_____';
+                      if (/^\d{2}\/\d{2}\/\d{4}$/.test(clean)) return clean;
+                      const cleanDate = clean.split('T')[0];
+                      const parts = cleanDate.split('-');
+                      if (parts.length === 3 && parts[0].length === 4) {
+                        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+                      }
+                      return clean;
                     };
 
                     switch(activeDocTab) {

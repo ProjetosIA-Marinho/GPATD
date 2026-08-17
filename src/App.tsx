@@ -553,7 +553,7 @@ export default function App() {
       case 'tasks':
         return <Tasks />;
       case 'novo-patd':
-        return <NewPATD initialData={editingProcess} onSave={handleSaveProcess} divisions={divisions} currentUser={currentUser} processes={processes} />;
+        return <NewPATD key={editingProcess?.id || (editingProcess ? 'editing' : 'new')} initialData={editingProcess} onSave={handleSaveProcess} divisions={divisions} currentUser={currentUser} processes={processes} />;
       case 'efetivo':
         return <Efetivo currentUser={currentUser} onNewPATDFromEfetivo={(military) => {
           setEditingProcess({
