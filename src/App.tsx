@@ -202,13 +202,38 @@ export default function App() {
         supabase.from('processes').select('*').order('created_at', { ascending: false })
       ]);
       
-      if (divsRes.data) setDivisions(divsRes.data);
+      if (divsRes.data) {
+        const normalizedDivs = divsRes.data.map(d => ({
+          ...d,
+          name: normalizeDivision(d.name) || d.name
+        }));
+        setDivisions(normalizedDivs);
+
+        divsRes.data.forEach(async (dbDiv: any) => {
+          const normName = normalizeDivision(dbDiv.name);
+          if (normName && dbDiv.name !== normName) {
+            console.log(`[Auto-repair] Repairing division table name from '${dbDiv.name}' to '${normName}'`);
+            await supabase.from('divisions').update({ name: normName }).eq('id', dbDiv.id);
+          }
+        });
+      }
+
       if (profilesRes.data) {
         setUsers(profilesRes.data.map(u => ({
           ...u,
+          divisao: normalizeDivision(u.divisao) || u.divisao,
           lastAccess: u.last_access ? new Date(u.last_access).toLocaleString() : 'Nunca'
         })));
+
+        profilesRes.data.forEach(async (p: any) => {
+          const normDiv = normalizeDivision(p.divisao);
+          if (normDiv && p.divisao !== normDiv) {
+            console.log(`[Auto-repair] Repairing profile division from '${p.divisao}' to '${normDiv}'`);
+            await supabase.from('profiles').update({ divisao: normDiv }).eq('id', p.id);
+          }
+        });
       }
+
       if (procRes.data) {
         setProcesses(procRes.data.map(mapDbProcess));
 

@@ -2762,10 +2762,25 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
     return isSameDivision(d.name, currentUser.divisao);
   });
 
-  const optionsDivisao = filteredDivsList.map(d => ({ value: d.name, label: `${d.name} - ${d.description}` }));
+  const rawOptionsDivisao = filteredDivsList.map(d => {
+    const normName = normalizeDivision(d.name) || d.name;
+    return { value: normName, label: `${normName} - ${d.description || 'Divisão Cadastrada'}` };
+  });
+
+  const optionsDivisao = [...rawOptionsDivisao];
+  if (formData.divisao) {
+    const normFormDiv = normalizeDivision(formData.divisao) || formData.divisao;
+    if (!optionsDivisao.some(o => o.value === normFormDiv)) {
+      optionsDivisao.unshift({ value: normFormDiv, label: `${normFormDiv} - Divisão Cadastrada` });
+    }
+  }
 
   const selectedDivision = divisions.find(d => isSameDivision(d.name, formData.divisao));
-  const optionsSetor = selectedDivision?.sectors?.map(s => ({ value: s, label: s })) || [];
+  let sectorList = selectedDivision?.sectors ? [...selectedDivision.sectors] : [];
+  if (formData.setor && !sectorList.includes(formData.setor)) {
+    sectorList.unshift(formData.setor);
+  }
+  const optionsSetor = sectorList.map(s => ({ value: s, label: s }));
 
   const optionsStatus = [
     { value: 'Concluído', label: 'Concluído' },
