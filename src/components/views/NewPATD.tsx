@@ -1686,32 +1686,6 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
 
   // Form memory persistence and initial load
   useEffect(() => {
-    const key = initialData 
-      ? (initialData._isPrefilledNew ? 'new_patd_form_memory' : `edit_patd_form_memory_${initialData.id}`)
-      : 'new_patd_form_memory';
-    
-    // Check if there is an autosaved version in localStorage
-    try {
-      const saved = !initialData?._isPrefilledNew ? localStorage.getItem(key) : null;
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed && typeof parsed === 'object') {
-          setFormData((prev: any) => ({ ...prev, ...parsed }));
-          
-          const savedHistory = localStorage.getItem(`${key}_history`);
-          if (savedHistory) {
-            setHistory(JSON.parse(savedHistory));
-          } else if (initialData && !initialData._isPrefilledNew) {
-            setHistory(initialData.history || []);
-          }
-          setIsFormLoaded(true);
-          return;
-        }
-      }
-    } catch (e) {
-      console.error('Error restoring form memory:', e);
-    }
-
     if (initialData) {
       if (initialData._isPrefilledNew) {
         setFormData((prev: any) => ({
@@ -1724,7 +1698,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
           divisao: initialData.divisao || currentUser?.divisao || prev.divisao || 'DOA'
         }));
       } else {
-        setFormData({
+        const loadedForm = {
           patdNumber: initialData.patdNumber || '',
           posto: initialData.posto || '1T',
           quadro: initialData.quadro || 'QOINT',
@@ -1760,47 +1734,90 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
           delegacaoDoc: initialData.delegacaoDoc || null,
           sigadSecprom: initialData.sigadSecprom || '',
           docArquivado: !!initialData.docArquivado
-        });
+        };
+
+        // Check if there is an autosaved draft in localStorage for this process edit
+        const key = `edit_patd_form_memory_${initialData.id}`;
+        try {
+          const saved = localStorage.getItem(key);
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (parsed && typeof parsed === 'object') {
+              // Merge parsed saved data onto loadedForm, but preserve non-empty DB fields
+              Object.keys(parsed).forEach(fieldKey => {
+                if (parsed[fieldKey] !== undefined && parsed[fieldKey] !== '' && parsed[fieldKey] !== null) {
+                  (loadedForm as any)[fieldKey] = parsed[fieldKey];
+                }
+              });
+            }
+          }
+        } catch (e) {
+          console.error('Error restoring form memory:', e);
+        }
+
+        setFormData(loadedForm);
       }
       setHistory(initialData.history || []);
-    } else {
-      setFormData({
-        patdNumber: `001/DIV/${currentYear}`,
-        posto: '1T',
-        quadro: 'QOINT',
-        saram: '',
-        nomeCompleto: '',
-        especialidade: '',
-        divisao: currentUser && currentUser.role !== 'Administrador' && currentUser.divisao ? currentUser.divisao : 'DOA',
-        setor: '',
-        apurador: '',
-        apuradorPosto: '1T',
-        apuradorQuadro: 'QOINT',
-        apuradorSaram: '',
-        aplicador: '',
-        aplicadorPosto: 'TC',
-        aplicadorQuadro: 'QOAV',
-        aplicadorCargo: '',
-        oficioNumero: '',
-        protComaer: '',
-        dataOficio: '',
-        enquadramentoRdaer: '',
-        resumoFato: '',
-        dataInicio: '',
-        dataTermino: '',
-        status: 'Em Andamento',
-        punicao: 'Em Branco',
-        qtdDias: '0',
-        dataPunicao: '',
-        resumoPunicao: '',
-        nGrade: '',
-        boletim: '',
-        observacoes: '',
-        documents: [],
-        delegacaoDoc: null
-      });
-      setHistory([]);
+      setIsFormLoaded(true);
+      return;
     }
+
+    // Creating new process: check localStorage form memory
+    const key = 'new_patd_form_memory';
+    try {
+      const saved = localStorage.getItem(key);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') {
+          setFormData((prev: any) => ({ ...prev, ...parsed }));
+          const savedHistory = localStorage.getItem(`${key}_history`);
+          if (savedHistory) {
+            setHistory(JSON.parse(savedHistory));
+          }
+          setIsFormLoaded(true);
+          return;
+        }
+      }
+    } catch (e) {
+      console.error('Error restoring new form memory:', e);
+    }
+
+    setFormData({
+      patdNumber: `001/DIV/${currentYear}`,
+      posto: '1T',
+      quadro: 'QOINT',
+      saram: '',
+      nomeCompleto: '',
+      especialidade: '',
+      divisao: currentUser && currentUser.role !== 'Administrador' && currentUser.divisao ? currentUser.divisao : 'DOA',
+      setor: '',
+      apurador: '',
+      apuradorPosto: '1T',
+      apuradorQuadro: 'QOINT',
+      apuradorSaram: '',
+      aplicador: '',
+      aplicadorPosto: 'TC',
+      aplicadorQuadro: 'QOAV',
+      aplicadorCargo: '',
+      oficioNumero: '',
+      protComaer: '',
+      dataOficio: '',
+      enquadramentoRdaer: '',
+      resumoFato: '',
+      dataInicio: '',
+      dataTermino: '',
+      status: 'Em Andamento',
+      punicao: 'Em Branco',
+      qtdDias: '0',
+      dataPunicao: '',
+      resumoPunicao: '',
+      nGrade: '',
+      boletim: '',
+      observacoes: '',
+      documents: [],
+      delegacaoDoc: null
+    });
+    setHistory([]);
     setIsFormLoaded(true);
   }, [initialData, currentUser]);
 
