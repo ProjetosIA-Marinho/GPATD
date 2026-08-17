@@ -2320,9 +2320,9 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
     };
   }, [formData.divisao, currentYear, initialData, processes, seqTrigger]);
 
-  // Enforce division if not Admin
+  // Enforce division if not Admin or Apurador
   useEffect(() => {
-    if (!initialData && currentUser && currentUser.role !== 'Administrador' && currentUser.divisao && !isSameDivision(formData.divisao, currentUser.divisao)) {
+    if (!initialData && currentUser && currentUser.role === 'Operador' && currentUser.divisao && !isSameDivision(formData.divisao, currentUser.divisao)) {
       setFormData(prev => ({
         ...prev,
         divisao: currentUser.divisao
@@ -2737,11 +2737,16 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
     { name: 'GSAU-YS', description: 'Grupo de Saúde de Pirassununga' },
     { name: 'CDEF', description: 'Comissão de Desporto de Educação Física' },
     { name: 'EC', description: 'Esquadrão de Comando' }
-  ]).filter(d => !currentUser || currentUser.role === 'Administrador' || isSameDivision(d.name, currentUser.divisao));
+  ]).filter(d => {
+    if (!currentUser || currentUser.role === 'Administrador' || currentUser.role === 'Apurador') return true;
+    if (initialData && (isSameDivision(d.name, initialData.divisao) || isSameDivision(d.name, formData.divisao))) return true;
+    if (formData.divisao && isSameDivision(d.name, formData.divisao)) return true;
+    return isSameDivision(d.name, currentUser.divisao);
+  });
 
   const optionsDivisao = filteredDivsList.map(d => ({ value: d.name, label: `${d.name} - ${d.description}` }));
 
-  const selectedDivision = divisions.find(d => d.name === formData.divisao);
+  const selectedDivision = divisions.find(d => isSameDivision(d.name, formData.divisao));
   const optionsSetor = selectedDivision?.sectors?.map(s => ({ value: s, label: s })) || [];
 
   const optionsStatus = [

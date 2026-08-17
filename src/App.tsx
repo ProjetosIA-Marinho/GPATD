@@ -22,6 +22,19 @@ import { checkAndRunScheduledBackup } from './services/backupService';
 // Settings component imported from ./components/views/Settings
 
 import { HistoryItem, Process } from './components/views/Processes';
+import { normalizeDivision, isSameDivision } from './utils/divisionUtils';
+
+const getCorrectDivisionForProcess = (patdNumber?: string, currentDiv?: string): string => {
+  if (patdNumber) {
+    const parts = patdNumber.split('/');
+    if (parts.length >= 2) {
+      const code = parts[1].trim().toUpperCase();
+      const normFromPatd = normalizeDivision(code);
+      if (normFromPatd) return normFromPatd;
+    }
+  }
+  return normalizeDivision(currentDiv) || currentDiv || 'DOA';
+};
 
 const initialMockProcesses: Process[] = [
   { 
@@ -141,31 +154,35 @@ const initialUsers: UserType[] = [
   { id: '5', name: 'Cel Rocha', posto: 'Cel', saram: '2345678', divisao: 'Comando', role: 'Visualizador', status: 'Ativo', lastAccess: '2024-05-10 14:20' },
 ];
 
-const mapDbProcess = (p: any): Process => ({
-  ...p,
-  patdNumber: p.patd_number,
-  dataInicio: p.data_inicio,
-  dataTermino: p.data_termino,
-  dataPunicao: p.data_punicao,
-  diasPunicao: p.dias_punicao,
-  resumoFato: p.resumo_fato,
-  nGrade: p.n_grade,
-  observacoes: p.observacoes,
-  resumoPunicao: p.resumo_punicao,
-  apuradorPosto: p.apurador_posto,
-  apuradorQuadro: p.apurador_quadro,
-  apuradorSaram: p.apurador_saram,
-  aplicadorPosto: p.aplicador_posto,
-  aplicadorQuadro: p.aplicador_quadro,
-  aplicadorCargo: p.aplicador_cargo,
-  oficioNumero: p.oficio_numero,
-  protComaer: p.prot_comaer,
-  dataOficio: p.data_oficio,
-  enquadramentoRdaer: p.enquadramento_rdaer,
-  delegacaoDoc: p.delegacao_doc || null,
-  sigadSecprom: p.sigad_secprom,
-  docArquivado: !!p.doc_arquivado
-});
+const mapDbProcess = (p: any): Process => {
+  const correctDiv = getCorrectDivisionForProcess(p.patd_number, p.divisao);
+  return {
+    ...p,
+    divisao: correctDiv,
+    patdNumber: p.patd_number,
+    dataInicio: p.data_inicio,
+    dataTermino: p.data_termino,
+    dataPunicao: p.data_punicao,
+    diasPunicao: p.dias_punicao,
+    resumoFato: p.resumo_fato,
+    nGrade: p.n_grade,
+    observacoes: p.observacoes,
+    resumoPunicao: p.resumo_punicao,
+    apuradorPosto: p.apurador_posto,
+    apuradorQuadro: p.apurador_quadro,
+    apuradorSaram: p.apurador_saram,
+    aplicadorPosto: p.aplicador_posto,
+    aplicadorQuadro: p.aplicador_quadro,
+    aplicadorCargo: p.aplicador_cargo,
+    oficioNumero: p.oficio_numero,
+    protComaer: p.prot_comaer,
+    dataOficio: p.data_oficio,
+    enquadramentoRdaer: p.enquadramento_rdaer,
+    delegacaoDoc: p.delegacao_doc || null,
+    sigadSecprom: p.sigad_secprom,
+    docArquivado: !!p.doc_arquivado
+  };
+};
 
 export default function App() {
   const { session, isLoading } = useAuth();
@@ -193,6 +210,15 @@ export default function App() {
       }
       if (procRes.data) {
         setProcesses(procRes.data.map(mapDbProcess));
+
+        // Auto-repair DB records whose saved divisao was corrupted or mismatched with patd_number
+        procRes.data.forEach(async (dbProc: any) => {
+          const expectedDiv = getCorrectDivisionForProcess(dbProc.patd_number, dbProc.divisao);
+          if (expectedDiv && dbProc.divisao !== expectedDiv) {
+            console.log(`[Auto-repair] Repairing division for PATD ${dbProc.patd_number} from '${dbProc.divisao}' to '${expectedDiv}'`);
+            await supabase.from('processes').update({ divisao: expectedDiv }).eq('id', dbProc.id);
+          }
+        });
       }
     } catch (err) {
       console.error('Error fetching data from Supabase:', err);
@@ -319,6 +345,11 @@ export default function App() {
     }
 
     try {
+      const targetDivisao = getCorrectDivisionForProcess(
+        newProcessData.patdNumber,
+        newProcessData.divisao
+      );
+
       const dbPayload = {
         patd_number: newProcessData.patdNumber || '000/UNKNOWN/2024',
         militar: newProcessData.nomeCompleto || newProcessData.militar,
@@ -326,7 +357,7 @@ export default function App() {
         posto: newProcessData.posto,
         especialidade: newProcessData.especialidade,
         quadro: newProcessData.quadro,
-        divisao: newProcessData.divisao,
+        divisao: targetDivisao,
         setor: newProcessData.setor,
         data_inicio: newProcessData.dataInicio || new Date().toISOString().split('T')[0],
         data_termino: newProcessData.dataTermino || null,
@@ -366,6 +397,8 @@ export default function App() {
         setProcesses(prev => prev.map(p => p.id === editingProcess.id ? { 
           ...p, 
           ...newProcessData,
+          divisao: targetDivisao,
+          patdNumber: dbPayload.patd_number,
           militar: dbPayload.militar,
           diasPunicao: dbPayload.dias_punicao,
           documents: dbPayload.documents,
