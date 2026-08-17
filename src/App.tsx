@@ -143,16 +143,16 @@ const initialDivisions: Division[] = [
   { id: '4', name: 'CCAER', description: 'Corpo de Cadetes da Aeronáutica', sectors: ['Corpo de Alunos', 'Seção de Instrução Prática'] },
   { id: '5', name: 'GSAU-YS', description: 'Grupo de Saúde de Pirassununga', sectors: ['Ambulatório', 'Farmácia', 'Fisioterapia'] },
   { id: '6', name: 'DEF', description: 'Divisão de Educação Física (DEF)', sectors: ['Secretaria da Divisão de Educação Física (DEF)', 'Seção de Apoio', 'Ginásio', 'Piscina'] },
-  { id: '7', name: 'COMANDO', description: 'Comando da AFA (CMDO)', sectors: ['Secretaria do Comando', 'Ajudância'] },
+  { id: '7', name: 'CMDO', description: 'Comando da AFA (CMDO)', sectors: ['Secretaria do Comando', 'Ajudância'] },
   { id: '8', name: 'EC', description: 'Esquadrão de Comando', sectors: ['Secretaria', 'Ajudância'] },
 ];
 
 const initialUsers: UserType[] = [
-  { id: '1', name: 'Cap Marinho', posto: 'Cap', saram: '1234567', divisao: 'Comando', role: 'Administrador', status: 'Ativo', lastAccess: '2024-05-15 10:30' },
+  { id: '1', name: 'Cap Marinho', posto: 'Cap', saram: '1234567', divisao: 'CMDO', role: 'Administrador', status: 'Ativo', lastAccess: '2024-05-15 10:30' },
   { id: '2', name: 'Maj Freitas', posto: 'Maj', saram: '6543210', divisao: 'DOA', role: 'Operador', status: 'Ativo', lastAccess: '2024-05-14 16:45' },
   { id: '3', name: 'Ten Costa', posto: 'Ten', saram: '7654321', divisao: 'GLOG-YS', role: 'Operador', status: 'Ativo', lastAccess: '2024-05-15 08:15' },
   { id: '4', name: 'Sgt Ferreira', posto: 'Sgt', saram: '8765432', divisao: 'DOA', role: 'Operador', status: 'Inativo', lastAccess: '2024-04-20 09:00' },
-  { id: '5', name: 'Cel Rocha', posto: 'Cel', saram: '2345678', divisao: 'Comando', role: 'Visualizador', status: 'Ativo', lastAccess: '2024-05-10 14:20' },
+  { id: '5', name: 'Cel Rocha', posto: 'Cel', saram: '2345678', divisao: 'CMDO', role: 'Visualizador', status: 'Ativo', lastAccess: '2024-05-10 14:20' },
 ];
 
 const mapDbProcess = (p: any): Process => {

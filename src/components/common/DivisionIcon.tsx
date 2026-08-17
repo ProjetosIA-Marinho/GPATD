@@ -30,6 +30,7 @@ export default function DivisionIcon({ division, image, className = "w-full h-fu
     case 'DEF':
     case 'CDEF':
       return <Trophy size={size} className="text-amber-500 dark:text-amber-400 shrink-0" />;
+    case 'CMDO':
     case 'COMANDO':
       return <Crown size={size} className="text-amber-600 dark:text-amber-300 shrink-0" />;
     case 'DOA':
