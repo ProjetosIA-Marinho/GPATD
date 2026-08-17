@@ -28,6 +28,7 @@ import { supabase } from '../../lib/supabase';
 import { Division } from './Divisions';
 import BulkImportModal from './BulkImportModal';
 import { isSameDivision } from '../../utils/divisionUtils';
+import DivisionIcon from '../common/DivisionIcon';
 import Pagination, { PageSizeOption } from '../common/Pagination';
 
 const FilterDropdown = ({ label, value, options, onChange }: any) => {
@@ -616,11 +617,8 @@ export default function Processes({
                       <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex items-center justify-center text-indigo-500 shadow-sm overflow-hidden shrink-0">
                           {(() => {
-                            const div = divisions.find(d => d.name === process.divisao);
-                            if (div && div.image) {
-                              return <img src={div.image} alt={div.name} className="w-full h-full object-cover object-center" />;
-                            }
-                            return <Building2 size={16} />;
+                            const div = divisions.find(d => isSameDivision(d.name, process.divisao));
+                            return <DivisionIcon division={process.divisao} image={div?.image} size={16} />;
                           })()}
                         </div>
                         <div className="flex flex-col">
