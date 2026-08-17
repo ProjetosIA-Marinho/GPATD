@@ -7,7 +7,7 @@ export function normalizeDivision(div?: string | null): string {
   const clean = div.trim().toUpperCase();
   
   // Division aliases mapping
-  if (clean === 'DEF' || clean === 'CDEF' || clean === 'COMISSÃO DE DESPORTO E EDUCAÇÃO FÍSICA') return 'CDEF';
+  if (clean === 'DEF' || clean === 'CDEF' || clean === 'COMISSÃO DE DESPORTO E EDUCAÇÃO FÍSICA' || clean === 'DIVISÃO DE EDUCAÇÃO FÍSICA') return 'DEF';
   if (clean === 'CMDO' || clean === 'COMANDO' || clean === 'COMANDO DA AFA') return 'COMANDO';
   if (clean === 'GLOG' || clean === 'GLOG-YS') return 'GLOG-YS';
   if (clean === 'GSD' || clean === 'GSD-YS') return 'GSD-YS';

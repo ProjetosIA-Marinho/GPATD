@@ -27,6 +27,7 @@ export default function DivisionIcon({ division, image, className = "w-full h-fu
   const norm = normalizeDivision(division);
 
   switch (norm) {
+    case 'DEF':
     case 'CDEF':
       return <Trophy size={size} className="text-amber-500 dark:text-amber-400 shrink-0" />;
     case 'COMANDO':

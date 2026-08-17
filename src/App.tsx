@@ -142,7 +142,7 @@ const initialDivisions: Division[] = [
   { id: '3', name: 'GSD-YS', description: 'Grupo de Segurança e Defesa de Pirassununga', sectors: ['Guarda do Portão', 'Canil', 'Pelotão de Operações Especiais'] },
   { id: '4', name: 'CCAER', description: 'Corpo de Cadetes da Aeronáutica', sectors: ['Corpo de Alunos', 'Seção de Instrução Prática'] },
   { id: '5', name: 'GSAU-YS', description: 'Grupo de Saúde de Pirassununga', sectors: ['Ambulatório', 'Farmácia', 'Fisioterapia'] },
-  { id: '6', name: 'CDEF', description: 'Comissão de Desporto e Educação Física (DEF)', sectors: ['Secretaria da Divisão de Educação Física (DEF)', 'Seção de Apoio', 'Ginásio', 'Piscina'] },
+  { id: '6', name: 'DEF', description: 'Divisão de Educação Física (DEF)', sectors: ['Secretaria da Divisão de Educação Física (DEF)', 'Seção de Apoio', 'Ginásio', 'Piscina'] },
   { id: '7', name: 'COMANDO', description: 'Comando da AFA (CMDO)', sectors: ['Secretaria do Comando', 'Ajudância'] },
   { id: '8', name: 'EC', description: 'Esquadrão de Comando', sectors: ['Secretaria', 'Ajudância'] },
 ];

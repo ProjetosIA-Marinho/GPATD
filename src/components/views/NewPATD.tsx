@@ -2752,7 +2752,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
     { name: 'GSD-YS', description: 'Grupo de Segurança e Defesa de Pirassununga' },
     { name: 'CCAER', description: 'Corpo de Cadetes da Aeronáutica' },
     { name: 'GSAU-YS', description: 'Grupo de Saúde de Pirassununga' },
-    { name: 'CDEF', description: 'Comissão de Desporto de Educação Física' },
+    { name: 'DEF', description: 'Divisão de Educação Física' },
     { name: 'EC', description: 'Esquadrão de Comando' }
   ]).filter(d => {
     if (!currentUser || currentUser.role === 'Administrador' || currentUser.role === 'Apurador') return true;
