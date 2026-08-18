@@ -103,12 +103,6 @@ export default function Reports({ processes, globalSearchTerm = '', currentUser 
     setCurrentPage(1);
   }, [searchTerm, filterDivisao, filterAno, filterStatus, filterPosto, filterPunicao, startDate, endDate]);
 
-  const displayedProcesses = useMemo(() => {
-    if (pageSize === 'all') return filteredProcesses;
-    const start = (currentPage - 1) * (pageSize as number);
-    return filteredProcesses.slice(start, start + (pageSize as number));
-  }, [filteredProcesses, currentPage, pageSize]);
-
   const visibleProcesses = useMemo(() => {
     if (currentUser?.role === 'Apurador') {
       const activeSaram = currentUser.saram;
@@ -168,6 +162,12 @@ export default function Reports({ processes, globalSearchTerm = '', currentUser 
       );
     });
   }, [visibleProcesses, searchTerm, globalSearchTerm, filterDivisao, filterAno, filterStatus, filterPosto, filterPunicao, startDate, endDate]);
+
+  const displayedProcesses = useMemo(() => {
+    if (pageSize === 'all') return filteredProcesses;
+    const start = (currentPage - 1) * (pageSize as number);
+    return filteredProcesses.slice(start, start + (pageSize as number));
+  }, [filteredProcesses, currentPage, pageSize]);
 
   const getStatusStyle = (status: Process['status']) => {
     switch (status) {
