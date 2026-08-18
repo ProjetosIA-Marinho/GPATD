@@ -288,8 +288,24 @@ export default function App() {
           const newProc = mapDbProcess(payload.new);
           setProcesses(prev => [newProc, ...prev.filter(p => p.id !== newProc.id)]);
         } else if (payload.eventType === 'UPDATE' && payload.new) {
-          const updatedProc = mapDbProcess(payload.new);
-          setProcesses(prev => prev.map(p => p.id === updatedProc.id ? { ...p, ...updatedProc } : p));
+          setProcesses(prev => prev.map(p => {
+            if (String(p.id) === String(payload.new.id)) {
+              const updatedProc = mapDbProcess(payload.new);
+              
+              if (payload.new.documents === undefined) updatedProc.documents = p.documents;
+              if (payload.new.history === undefined) updatedProc.history = p.history;
+              if (payload.new.delegacao_doc === undefined) updatedProc.delegacaoDoc = p.delegacaoDoc;
+
+              const merged: any = { ...p };
+              for (const key in updatedProc) {
+                if ((updatedProc as any)[key] !== undefined) {
+                  merged[key] = (updatedProc as any)[key];
+                }
+              }
+              return merged;
+            }
+            return p;
+          }));
         }
       })
       .subscribe();

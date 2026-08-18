@@ -347,7 +347,7 @@ export default function Processes({
     }
 
     return result;
-  }, [processes, searchTerm, globalSearchTerm, sortConfig, filterDivisao, filterStatus, filterPosto, filterPunicao, filterAno]);
+  }, [processes, searchTerm, globalSearchTerm, sortConfig, filterDivisao, filterStatus, filterPosto, filterPunicao, filterAno, currentUser, canFilterAllDivisions]);
 
   // Reset page to 1 when filters or search change
   React.useEffect(() => {
