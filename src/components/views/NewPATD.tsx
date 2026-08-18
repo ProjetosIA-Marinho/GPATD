@@ -34,6 +34,29 @@ import { supabase } from '../../lib/supabase';
 import * as XLSX from 'xlsx';
 import { isSameDivision } from '../../utils/divisionUtils';
 
+const parseArray = (val: any): any[] => {
+  if (!val) return [];
+  if (Array.isArray(val)) return val;
+  if (typeof val === 'string') {
+    try {
+      const parsed = JSON.parse(val);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (e) {}
+  }
+  return [];
+};
+
+const parseObject = (val: any): any => {
+  if (!val) return null;
+  if (typeof val === 'object') return val;
+  if (typeof val === 'string') {
+    try {
+      return JSON.parse(val);
+    } catch (e) {}
+  }
+  return null;
+};
+
 const InputField = ({ label, icon: Icon, value, onChange, placeholder, disabled = false, type = "text", error, onBlur }: any) => (
   <div className="space-y-1.5 flex-1">
     <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">{label}</label>
@@ -672,8 +695,10 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
         const { data, error } = await supabase.from('documents').select('*');
         if (data) {
           const filtered = data.filter(d => 
-            d.name.toLowerCase().includes('portaria') || 
-            d.name.toLowerCase().includes('delega')
+            d && d.name && typeof d.name === 'string' && (
+              d.name.toLowerCase().includes('portaria') || 
+              d.name.toLowerCase().includes('delega')
+            )
           );
           setLibraryDocs(filtered);
         }
@@ -1744,8 +1769,8 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
           nGrade: initialData.nGrade || '',
           boletim: initialData.boletim || '',
           observacoes: initialData.observacoes || '',
-          documents: initialData.documents || [],
-          delegacaoDoc: initialData.delegacaoDoc || null,
+          documents: parseArray(initialData.documents),
+          delegacaoDoc: parseObject(initialData.delegacaoDoc),
           sigadSecprom: initialData.sigadSecprom || '',
           docArquivado: !!initialData.docArquivado
         };
@@ -1769,9 +1794,13 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
           console.error('Error restoring form memory:', e);
         }
 
+        // Ensure documents is array
+        loadedForm.documents = parseArray(loadedForm.documents);
+        loadedForm.delegacaoDoc = parseObject(loadedForm.delegacaoDoc);
+
         setFormData(loadedForm);
       }
-      setHistory(initialData.history || []);
+      setHistory(parseArray(initialData.history));
       setIsFormLoaded(true);
       return;
     }
@@ -3138,7 +3167,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                 </div>
               )}
 
-              {formData.documents && formData.documents.length > 0 && (
+              {Array.isArray(formData.documents) && formData.documents.length > 0 && (
                 <div className="space-y-2 mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
                   <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Documentos Anexados</p>
                   <div className="space-y-1.5">
@@ -3780,7 +3809,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                                       </h5>
                                     </>
                                   )}
-                                  {libraryDocs.length > 0 && (
+                                  {Array.isArray(libraryDocs) && libraryDocs.length > 0 && (
                                     <div className="mt-6 border-t border-slate-100 dark:border-slate-800 pt-6 w-full">
                                       <h5 className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-3 text-left flex items-center gap-1.5">
                                         <FileText size={14} className="text-indigo-500" />

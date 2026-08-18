@@ -155,6 +155,29 @@ const initialUsers: UserType[] = [
   { id: '5', name: 'Cel Rocha', posto: 'Cel', saram: '2345678', divisao: 'CMDO', role: 'Visualizador', status: 'Ativo', lastAccess: '2024-05-10 14:20' },
 ];
 
+const parseArray = (val: any): any[] => {
+  if (!val) return [];
+  if (Array.isArray(val)) return val;
+  if (typeof val === 'string') {
+    try {
+      const parsed = JSON.parse(val);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (e) {}
+  }
+  return [];
+};
+
+const parseObject = (val: any): any => {
+  if (!val) return null;
+  if (typeof val === 'object') return val;
+  if (typeof val === 'string') {
+    try {
+      return JSON.parse(val);
+    } catch (e) {}
+  }
+  return null;
+};
+
 const mapDbProcess = (p: any): Process => {
   const correctDiv = getCorrectDivisionForProcess(p.patd_number, p.divisao);
   return {
@@ -179,7 +202,9 @@ const mapDbProcess = (p: any): Process => {
     protComaer: p.prot_comaer,
     dataOficio: p.data_oficio,
     enquadramentoRdaer: p.enquadramento_rdaer,
-    delegacaoDoc: p.delegacao_doc || null,
+    delegacaoDoc: parseObject(p.delegacao_doc || p.delegacaoDoc),
+    documents: parseArray(p.documents),
+    history: parseArray(p.history),
     sigadSecprom: p.sigad_secprom,
     docArquivado: !!p.doc_arquivado
   };
