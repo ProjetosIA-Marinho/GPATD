@@ -3674,7 +3674,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                           </div>
                         );
                       case 'delegacao':
-                        const isAdmin = currentUser?.role === 'Administrador';
+                        const canManagePortaria = currentUser?.role === 'Administrador' || currentUser?.role === 'Apurador';
                         const isPng = formData.delegacaoDoc?.name?.toLowerCase().endsWith('.png') || formData.delegacaoDoc?.url?.toLowerCase().endsWith('.png');
                         return (
                           <div className="bg-white dark:bg-slate-950 p-8 shadow-2xl rounded-2xl text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-850 w-full max-w-[650px] min-h-[500px] flex flex-col justify-between overflow-y-auto my-4 relative">
@@ -3719,7 +3719,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                                         Download
                                       </a>
 
-                                      {isAdmin && (
+                                      {canManagePortaria && (
                                         <button
                                           type="button"
                                           onClick={handleDelegacaoDelete}
@@ -3773,7 +3773,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                                 </div>
                               ) : (
                                 <div className="py-12 px-6 border-2 border-dashed border-slate-250 dark:border-slate-800 rounded-3xl flex flex-col items-center justify-center text-center">
-                                  {isAdmin ? (
+                                  {canManagePortaria ? (
                                     <>
                                       <div className="h-14 w-14 flex items-center justify-center rounded-2xl bg-indigo-50 dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 mb-4 shadow-sm">
                                         <UploadCloud size={24} />
@@ -3836,7 +3836,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                                               >
                                                 Visualizar
                                               </button>
-                                              {isAdmin && !formData.delegacaoDoc && (
+                                              {canManagePortaria && !formData.delegacaoDoc && (
                                                 <button
                                                   type="button"
                                                   onClick={async () => {
