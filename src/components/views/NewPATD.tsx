@@ -32,7 +32,7 @@ import { AnimatePresence } from 'motion/react';
 import { Division } from './Divisions';
 import { supabase } from '../../lib/supabase';
 import * as XLSX from 'xlsx';
-import { isSameDivision } from '../../utils/divisionUtils';
+import { isSameDivision, normalizeDivision } from '../../utils/divisionUtils';
 
 const parseArray = (val: any): any[] => {
   if (!val) return [];
