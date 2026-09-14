@@ -184,6 +184,10 @@ export default function Divisions({ divisions, setDivisions, isAdmin = true, glo
   };
 
   const filteredDivisions = divisions.filter(d => {
+    if (currentUser?.role === 'Operador' && !isSameDivision(d.name, currentUser?.divisao)) {
+      return false;
+    }
+    
     const effectiveSearch = globalSearchTerm || searchTerm;
     return (
       d.name.toLowerCase().includes(effectiveSearch.toLowerCase()) ||
