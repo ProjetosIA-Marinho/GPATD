@@ -128,6 +128,7 @@ export interface Process {
   protComaer?: string;
   dataOficio?: string;
   enquadramentoRdaer?: string;
+  documents?: { name: string; url: string; uploadedAt: string }[];
 }
 
 export default function Processes({ 
@@ -884,6 +885,42 @@ export default function Processes({
                         </div>
                       </div>
                     </section>
+
+                    {/* Attached Documents Section */}
+                    {selectedProcess.documents && selectedProcess.documents.length > 0 && (
+                      <section>
+                        <h4 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-6 flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                          Documentos Anexados
+                        </h4>
+                        <div className="space-y-3">
+                          {selectedProcess.documents.map((doc, idx) => (
+                            <div key={idx} className="flex items-center justify-between p-4 rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm group">
+                              <div className="flex items-center gap-4 min-w-0">
+                                <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 shrink-0">
+                                  <FileText size={20} />
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="text-sm font-bold text-slate-700 dark:text-white truncate">{doc.name}</p>
+                                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mt-0.5">
+                                    Adicionado em: {doc.uploadedAt}
+                                  </p>
+                                </div>
+                              </div>
+                              <a 
+                                href={doc.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 font-bold text-[10px] uppercase tracking-wider transition-colors shrink-0"
+                              >
+                                <Download size={14} />
+                                Download
+                              </a>
+                            </div>
+                          ))}
+                        </div>
+                      </section>
+                    )}
                   </motion.div>
                 </div>
 
