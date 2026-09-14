@@ -2951,6 +2951,23 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
               </p>
             </div>
           </motion.button>
+
+          {formData.documents && formData.documents.length > 0 && (
+            <a 
+              href={formData.documents[0].url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 px-6 py-3 rounded-2xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-500/20 group shrink-0"
+            >
+              <div className="p-2 rounded-lg bg-white/10 text-white group-hover:scale-110 transition-transform">
+                <Download size={18} />
+              </div>
+              <div className="text-left">
+                <p className="leading-none">Baixar PDF</p>
+                <p className="text-[9px] text-indigo-200 lowercase font-medium mt-1">documento anexado</p>
+              </div>
+            </a>
+          )}
           
           <motion.button 
             type="button"
