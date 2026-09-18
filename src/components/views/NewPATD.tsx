@@ -1784,6 +1784,9 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
             if (parsed && typeof parsed === 'object') {
               // Merge parsed saved data onto loadedForm, but preserve non-empty DB fields
               Object.keys(parsed).forEach(fieldKey => {
+                // Server state should be the source of truth for documents
+                if (fieldKey === 'documents' || fieldKey === 'delegacaoDoc') return;
+
                 if (parsed[fieldKey] !== undefined && parsed[fieldKey] !== '' && parsed[fieldKey] !== null) {
                   (loadedForm as any)[fieldKey] = parsed[fieldKey];
                 }
