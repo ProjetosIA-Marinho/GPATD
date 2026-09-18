@@ -1775,27 +1775,8 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
           docArquivado: !!initialData.docArquivado
         };
 
-        // Check if there is an autosaved draft in localStorage for this process edit
-        const key = `edit_patd_form_memory_${initialData.id}`;
-        try {
-          const saved = localStorage.getItem(key);
-          if (saved) {
-            const parsed = JSON.parse(saved);
-            if (parsed && typeof parsed === 'object') {
-              // Merge parsed saved data onto loadedForm, but preserve non-empty DB fields
-              Object.keys(parsed).forEach(fieldKey => {
-                // Server state should be the source of truth for documents
-                if (fieldKey === 'documents' || fieldKey === 'delegacaoDoc') return;
-
-                if (parsed[fieldKey] !== undefined && parsed[fieldKey] !== '' && parsed[fieldKey] !== null) {
-                  (loadedForm as any)[fieldKey] = parsed[fieldKey];
-                }
-              });
-            }
-          }
-        } catch (e) {
-          console.error('Error restoring form memory:', e);
-        }
+        // Removed localStorage draft restoration for existing processes
+        // to prevent stale local drafts from overwriting newer database state.
 
         // Ensure documents is array
         loadedForm.documents = parseArray(loadedForm.documents);
