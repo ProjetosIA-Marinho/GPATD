@@ -2259,7 +2259,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
     }
 
     try {
-      if (formData.delegacaoDoc?.url) {
+      if (formData.delegacaoDoc?.url && !formData.delegacaoDoc.isFromLibrary) {
         const urlParts = formData.delegacaoDoc.url.split('/storage/v1/object/public/documents/');
         if (urlParts.length > 1) {
           const filePath = decodeURIComponent(urlParts[1]);
@@ -3844,7 +3844,8 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                                                     const newDoc = {
                                                       name: doc.name,
                                                       url: doc.drive_link,
-                                                      uploadedAt: new Date().toLocaleDateString('pt-BR')
+                                                      uploadedAt: new Date().toLocaleDateString('pt-BR'),
+                                                      isFromLibrary: true
                                                     };
                                                     
                                                     const newHistoryItem = {
