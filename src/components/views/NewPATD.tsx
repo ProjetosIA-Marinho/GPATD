@@ -977,7 +977,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                 </p>
                 
                 <p style="text-indent: 3rem; margin-top: 15px; text-align: justify;">
-                  Designo o <strong>${formData.apuradorPosto || ''} ${formData.apuradorQuadro || ''} ${formData.apurador || '___________________________'}</strong> para, na condição de Oficial Apurador, efetuar a apuração da suposta transgressão disciplinar e propor solução à autoridade competente, com estrita observância dos procedimentos previstos na ICA 111-6, aprovada pela Portaria GABAER nº 120/GC3 de 9 de julho de 2021, e no Decreto nº 76.322, de 22 de setembro de 1975 (RDAER); sem prejuízo das demais funções.
+                  Designo o <strong>${formData.apuradorPosto || ''} ${formData.apuradorQuadro || ''}${formData.apuradorEspecialidade ? ` ${formData.apuradorEspecialidade}` : ''} ${formData.apurador || '___________________________'}</strong> para, na condição de Oficial Apurador, efetuar a apuração da suposta transgressão disciplinar e propor solução à autoridade competente, com estrita observância dos procedimentos previstos na ICA 111-6, aprovada pela Portaria GABAER nº 120/GC3 de 9 de julho de 2021, e no Decreto nº 76.322, de 22 de setembro de 1975 (RDAER); sem prejuízo das demais funções.
                 </p>
                 
                 <p style="text-indent: 3rem; margin-top: 15px; text-align: justify;">
@@ -991,7 +991,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
 
               <div class="signature-box text-center" style="margin-top: 30mm;">
                 <div class="line mx-auto w-64 border-bottom mb-2" style="border-bottom: 1px solid #000000; width: 250px; margin-left: auto; margin-right: auto;"></div>
-                <p class="font-bold uppercase" style="margin: 0 0 2px 0; font-size: 13px;">${formData.aplicadorPosto || ''} ${formData.aplicadorQuadro || ''} ${formData.aplicador || '___________________________'}</p>
+                <p class="font-bold uppercase" style="margin: 0 0 2px 0; font-size: 13px;">${formData.aplicador || '___________________________'} - ${formData.aplicadorPosto || ''} ${formData.aplicadorQuadro || ''}${formData.aplicadorEspecialidade ? ` ${formData.aplicadorEspecialidade}` : ''}</p>
                 <p class="text-xs uppercase text-slate-500" style="margin: 0; font-size: 10px;">${formData.aplicadorCargo || 'Autoridade Aplicadora / Competente'}</p>
               </div>
             </div>
@@ -1493,7 +1493,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
           </p>
           
           <p style="text-indent: 3rem; margin-top: 15px; text-align: justify;">
-            Designo o <strong>${formData.apuradorPosto || ''} ${formData.apuradorQuadro || ''} ${formData.apurador || '___________________________'}</strong> para, na condição de Oficial Apurador, efetuar a apuração da suposta transgressão disciplinar e propor solução à autoridade competente, com estrita observância dos procedimentos previstos na ICA 111-6, aprovada pela Portaria GABAER nº 120/GC3 de 9 de julho de 2021, e no Decreto nº 76.322, de 22 de setembro de 1975 (RDAER); sem prejuízo das demais funções.
+            Designo o <strong>${formData.apuradorPosto || ''} ${formData.apuradorQuadro || ''}${formData.apuradorEspecialidade ? ` ${formData.apuradorEspecialidade}` : ''} ${formData.apurador || '___________________________'}</strong> para, na condição de Oficial Apurador, efetuar a apuração da suposta transgressão disciplinar e propor solução à autoridade competente, com estrita observância dos procedimentos previstos na ICA 111-6, aprovada pela Portaria GABAER nº 120/GC3 de 9 de julho de 2021, e no Decreto nº 76.322, de 22 de setembro de 1975 (RDAER); sem prejuízo das demais funções.
           </p>
           
           <p style="text-indent: 3rem; margin-top: 15px; text-align: justify;">
@@ -1507,7 +1507,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
 
         <div class="signature-box text-center" style="margin-top: 30mm;">
           <div class="line mx-auto w-64 border-bottom mb-2" style="border-bottom: 1px solid #000000; width: 250px; margin-left: auto; margin-right: auto;"></div>
-          <p class="font-bold uppercase" style="margin: 0 0 2px 0; font-size: 13px;">${formData.aplicadorPosto || ''} ${formData.aplicadorQuadro || ''} ${formData.aplicador || '___________________________'}</p>
+          <p class="font-bold uppercase" style="margin: 0 0 2px 0; font-size: 13px;">${formData.aplicador || '___________________________'} - ${formData.aplicadorPosto || ''} ${formData.aplicadorQuadro || ''}${formData.aplicadorEspecialidade ? ` ${formData.aplicadorEspecialidade}` : ''}</p>
           <p class="text-xs uppercase text-slate-500" style="margin: 0; font-size: 10px;">${formData.aplicadorCargo || 'Autoridade Aplicadora / Competente'}</p>
         </div>
       </div>
@@ -3926,7 +3926,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                                 </p>
                                 
                                 <p style={{ textIndent: '2.5rem', marginTop: '10px', textAlign: 'justify' }}>
-                                  Designo o <strong>{formData.apuradorPosto || ''} {formData.apuradorQuadro || ''} {formData.apurador || '___________________________'}</strong> para, na condição de Oficial Apurador, efetuar a apuração da suposta transgressão disciplinar e propor solução à autoridade competente, com estrita observância dos procedimentos previstos na ICA 111-6, aprovada pela Portaria GABAER nº 120/GC3 de 9 de julho de 2021, e no Decreto nº 76.322, de 22 de setembro de 1975 (RDAER); sem prejuízo das demais funções.
+                                  Designo o <strong>{formData.apuradorPosto || ''} {formData.apuradorQuadro || ''}{formData.apuradorEspecialidade ? ` ${formData.apuradorEspecialidade}` : ''} {formData.apurador || '___________________________'}</strong> para, na condição de Oficial Apurador, efetuar a apuração da suposta transgressão disciplinar e propor solução à autoridade competente, com estrita observância dos procedimentos previstos na ICA 111-6, aprovada pela Portaria GABAER nº 120/GC3 de 9 de julho de 2021, e no Decreto nº 76.322, de 22 de setembro de 1975 (RDAER); sem prejuízo das demais funções.
                                 </p>
                                 
                                 <p style={{ textIndent: '2.5rem', marginTop: '10px', textAlign: 'justify' }}>
@@ -3941,7 +3941,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                             
                             <div className="text-center mt-12">
                               <div className="w-56 mx-auto mb-2" style={{ width: '200px', marginLeft: 'auto', marginRight: 'auto', borderBottom: '1px solid #000000' }} />
-                              <p className="font-bold uppercase text-[12px]" style={{ color: '#000000' }}>{formData.aplicadorPosto || ''} {formData.aplicadorQuadro || ''} {formData.aplicador || '___________________________'}</p>
+                              <p className="font-bold uppercase text-[12px]" style={{ color: '#000000' }}>{formData.aplicador || '___________________________'} - {formData.aplicadorPosto || ''} {formData.aplicadorQuadro || ''}{formData.aplicadorEspecialidade ? ` ${formData.aplicadorEspecialidade}` : ''}</p>
                               <p className="text-[9px] uppercase text-slate-400">{formData.aplicadorCargo || 'Autoridade Competente'}</p>
                             </div>
                           </div>
