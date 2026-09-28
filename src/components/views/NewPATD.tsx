@@ -3094,7 +3094,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                   <InputField label="Prot. COMAER nº" icon={FileText} value={formData.protComaer} onChange={handleChange('protComaer')} placeholder="Ex: 60000.000000/2026-00" />
                   <DatePickerField label="Data" value={formData.dataOficio} onChange={handleChange('dataOficio')} />
                 </div>
-                <TextAreaField label="Enquadramento RDAER" value={formData.enquadramentoRdaer} onChange={handleChange('enquadramentoRdaer')} placeholder="Ex: Artigo 10, item 12, do RDAER (Regulamento de Disciplina da Aeronáutica)..." />
+                <TextAreaField label="Enquadramento RDAER" value={formData.enquadramentoRdaer} onChange={handleChange('enquadramentoRdaer')} placeholder="Somente o item de enquadramento do RDAER. Ex: 18, 19 e 20" />
               </div>
 
               <TextAreaField label="Resumo do Fato" value={formData.resumoFato} onChange={handleChange('resumoFato')} placeholder="Descreva os fatos ocorridos..." />
