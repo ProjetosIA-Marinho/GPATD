@@ -3061,11 +3061,12 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                   </div>
                   <SelectField label="Posto" icon={Shield} value={formData.apuradorPosto} onChange={handleChange('apuradorPosto')} options={optionsPosto} />
                   <SelectField label="Quadro" icon={Briefcase} value={formData.apuradorQuadro} onChange={handleChange('apuradorQuadro')} options={optionsQuadro} />
-                  <AutocompleteInputField label="Especialidade" icon={Briefcase} value={formData.apuradorEspecialidade} onChange={handleChange('apuradorEspecialidade')} fieldName="apuradorEspecialidade" />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <AutocompleteInputField label="SARAM (Apurador)" icon={User} value={formData.apuradorSaram} onChange={handleChange('apuradorSaram')} onBlur={() => handleFieldBlur('apurador', 'saram')} onSearch={() => handleFieldBlur('apurador', 'saram')} placeholder="0000000" error={errors.apuradorSaram} fieldName="apuradorSaram" />
-                  <div className="hidden md:block" />
+                  <div className="md:col-span-2">
+                    <AutocompleteInputField label="Especialidade" icon={Briefcase} value={formData.apuradorEspecialidade} onChange={handleChange('apuradorEspecialidade')} fieldName="apuradorEspecialidade" />
+                  </div>
+                  <div className="md:col-span-2">
+                    <AutocompleteInputField label="SARAM (Apurador)" icon={User} value={formData.apuradorSaram} onChange={handleChange('apuradorSaram')} onBlur={() => handleFieldBlur('apurador', 'saram')} onSearch={() => handleFieldBlur('apurador', 'saram')} placeholder="0000000" error={errors.apuradorSaram} fieldName="apuradorSaram" />
+                  </div>
                 </div>
               </div>
 
@@ -3073,18 +3074,15 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
               <div className="border-b border-slate-100 dark:border-slate-850/50 pb-6 space-y-4">
                 <p className="text-[10px] font-black text-indigo-500 uppercase tracking-wider ml-1">Identificação do Aplicador</p>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                  <div className="md:col-span-2">
+                  <div className="md:col-span-3">
                     <AutocompleteInputField label="Autoridade Aplicadora" icon={User} value={formData.aplicador} onChange={handleChange('aplicador')} fieldName="aplicador" disabled={currentUser?.role === 'Apurador'} />
                   </div>
                   <SelectField label="Posto (Aplicador)" icon={Shield} value={formData.aplicadorPosto} onChange={handleChange('aplicadorPosto')} options={optionsPosto} disabled={currentUser?.role === 'Apurador'} />
-                  <SelectField label="Quadro (Aplicador)" icon={Briefcase} value={formData.aplicadorQuadro} onChange={handleChange('aplicadorQuadro')} options={optionsQuadro} disabled={currentUser?.role === 'Apurador'} />
                   <AutocompleteInputField label="Especialidade (Aplicador)" icon={Briefcase} value={formData.aplicadorEspecialidade} onChange={handleChange('aplicadorEspecialidade')} fieldName="aplicadorEspecialidade" disabled={currentUser?.role === 'Apurador'} />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  <SelectField label="Quadro (Aplicador)" icon={Briefcase} value={formData.aplicadorQuadro} onChange={handleChange('aplicadorQuadro')} options={optionsQuadro} disabled={currentUser?.role === 'Apurador'} />
                   <div className="md:col-span-2">
                     <AutocompleteInputField label="Cargo (Aplicador)" icon={Briefcase} value={formData.aplicadorCargo} onChange={handleChange('aplicadorCargo')} placeholder="Ex: Comandante, Chefe de Divisão, etc." fieldName="aplicadorCargo" disabled={currentUser?.role === 'Apurador'} />
                   </div>
-                  <div className="hidden md:block md:col-span-2" />
                 </div>
               </div>
 
