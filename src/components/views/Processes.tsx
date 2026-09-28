@@ -121,8 +121,10 @@ export interface Process {
   apuradorSaram?: string;
   apuradorPosto?: string;
   apuradorQuadro?: string;
+  apuradorEspecialidade?: string;
   aplicadorPosto?: string;
   aplicadorQuadro?: string;
+  aplicadorEspecialidade?: string;
   aplicadorCargo?: string;
   oficioNumero?: string;
   protComaer?: string;
@@ -599,7 +601,7 @@ export default function Processes({
                           <div className="flex items-center gap-1.5 mt-0.5 opacity-60">
                             {process.apuradorPosto && (
                               <span className="text-[9px] font-black text-indigo-500 uppercase tracking-tighter">
-                                {process.apuradorPosto}
+                                {process.apuradorPosto} {process.apuradorEspecialidade ? `- ${process.apuradorEspecialidade}` : ''}
                               </span>
                             )}
                             {process.apuradorPosto && process.apuradorSaram && (

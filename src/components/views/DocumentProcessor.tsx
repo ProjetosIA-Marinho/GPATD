@@ -28,6 +28,7 @@ interface DocumentProcessorProps {
   onUploadSuccess: (file: File, description: string, targetFolderId?: string) => Promise<void>;
   folders: any[];
   initialFolderId?: string;
+  isAdmin?: boolean;
 }
 
 interface QueueItem {
@@ -38,7 +39,7 @@ interface QueueItem {
   size: string;
 }
 
-export default function DocumentProcessor({ isOpen, onClose, onUploadSuccess, folders, initialFolderId }: DocumentProcessorProps) {
+export default function DocumentProcessor({ isOpen, onClose, onUploadSuccess, folders, initialFolderId, isAdmin }: DocumentProcessorProps) {
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processStep, setProcessStep] = useState<string>('');
@@ -580,7 +581,7 @@ export default function DocumentProcessor({ isOpen, onClose, onUploadSuccess, fo
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Folder Destination selector */}
-                  {folders.length > 0 && (
+                  {isAdmin && folders.length > 0 && (
                     <div className="flex flex-col gap-2 p-4 bg-white dark:bg-slate-950 rounded-2xl border border-slate-100 dark:border-slate-800 md:col-span-2">
                       <p className="text-sm font-bold text-slate-800 dark:text-slate-200">Pasta de Destino na Biblioteca</p>
                       <select

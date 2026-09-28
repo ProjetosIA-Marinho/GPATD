@@ -212,6 +212,10 @@ export default function Documents({ currentUser }: { currentUser: any }) {
   };
 
   const handleDirectUpload = async (file: File, description: string, targetFolderId?: string) => {
+    if (!isAdmin) {
+      alert('Apenas administradores podem adicionar documentos na biblioteca.');
+      return;
+    }
     const destFolderId = targetFolderId || selectedFolder?.id;
     if (!destFolderId) {
       alert('Nenhuma pasta selecionada para salvar o documento final.');
@@ -268,6 +272,10 @@ export default function Documents({ currentUser }: { currentUser: any }) {
 
   const handleDeleteFolder = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!isAdmin) {
+      alert('Apenas administradores podem excluir pastas da biblioteca.');
+      return;
+    }
     if (window.confirm('Excluir esta pasta e todos os seus documentos?')) {
       const { error } = await supabase.from('folders').delete().eq('id', id);
       if (!error) {
@@ -278,6 +286,10 @@ export default function Documents({ currentUser }: { currentUser: any }) {
 
   const handleDeleteDocument = async (docId: string, filePath?: string) => {
     if (!selectedFolder) return;
+    if (!isAdmin) {
+      alert('Apenas administradores podem excluir documentos da biblioteca.');
+      return;
+    }
     if (window.confirm('Excluir este documento?')) {
       // Find document to optionally delete from storage if we had the path saved 
       // (Since we didn't save the path explicitly, we'll just delete the DB record. The bucket file will be orphaned unless we parse the URL).
@@ -963,6 +975,7 @@ export default function Documents({ currentUser }: { currentUser: any }) {
           onUploadSuccess={handleDirectUpload}
           folders={folders}
           initialFolderId={selectedFolder?.id}
+          isAdmin={isAdmin}
         />
       </AnimatePresence>
     </div>

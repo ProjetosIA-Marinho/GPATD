@@ -721,10 +721,12 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
     apurador: currentUser && currentUser.role === 'Apurador' ? currentUser.name : '',
     apuradorPosto: currentUser && currentUser.role === 'Apurador' ? currentUser.posto : '1T',
     apuradorQuadro: currentUser && currentUser.role === 'Apurador' ? currentUser.quadro : 'QOINT',
+    apuradorEspecialidade: '',
     apuradorSaram: currentUser && currentUser.role === 'Apurador' ? currentUser.saram : '',
     aplicador: '',
     aplicadorPosto: 'TC',
     aplicadorQuadro: 'QOAV',
+      aplicadorEspecialidade: '',
     aplicadorCargo: '',
     oficioNumero: '',
     protComaer: '',
@@ -941,7 +943,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                   <!-- Oficial Apurador -->
                   <div class="text-center">
                     <p style="font-size: 15px; font-weight: bold; color: #000000; margin: 0; text-transform: uppercase; letter-spacing: 1px;">Oficial Apurador</p>
-                    <p class="text-black" style="font-size: 15px; font-weight: bold; margin: 8px 0 0 0; text-transform: uppercase;">${formData.apurador || '___________________________'} - ${formData.apuradorPosto} ${formData.apuradorQuadro}</p>
+                    <p class="text-black" style="font-size: 15px; font-weight: bold; margin: 8px 0 0 0; text-transform: uppercase;">${formData.apurador || '___________________________'} - ${formData.apuradorPosto} ${formData.apuradorQuadro} ${formData.apuradorEspecialidade ? `${formData.apuradorEspecialidade}` : ''}</p>
                     <div class="line-accent" style="margin-top: 5px !important;"></div>
                   </div>
                 </div>
@@ -1034,7 +1036,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
               <!-- Identificação do Oficial Apurador -->
               <div style="border: 1px solid #000000; padding: 6px; font-size: 12px; margin-bottom: 15px; color: #000000;">
                 <p style="font-weight: bold; margin: 0 0 4px 0; font-size: 13px; text-transform: uppercase;">IDENTIFICAÇÃO DO OFICIAL APURADOR</p>
-                <p style="margin: 0 0 4px 0; font-size: 12px; text-transform: uppercase;">${formData.apurador || '___________________________'} - ${formData.apuradorPosto} ${formData.apuradorQuadro}</p>
+                <p style="margin: 0 0 4px 0; font-size: 12px; text-transform: uppercase;">${formData.apurador || '___________________________'} - ${formData.apuradorPosto} ${formData.apuradorQuadro} ${formData.apuradorEspecialidade ? `${formData.apuradorEspecialidade}` : ''}</p>
                 <div style="display: flex; justify-content: space-between;">
                   <span>SARAM: <strong>${formData.apuradorSaram || '_______'}</strong></span>
                   <span>Seção/OM: <strong>${formData.divisao || '_______'}</strong></span>
@@ -1058,7 +1060,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
 
               <div class="signature-box text-center" style="margin-top: 20mm;">
                 <div class="line mx-auto w-64 border-bottom mb-2" style="border-bottom: 1px solid #000000; width: 250px; margin-left: auto; margin-right: auto;"></div>
-                <p class="font-bold uppercase" style="margin: 0 0 2px 0; font-size: 13px;">${formData.apurador || '___________________________'} - ${formData.apuradorPosto} ${formData.apuradorQuadro}</p>
+                <p class="font-bold uppercase" style="margin: 0 0 2px 0; font-size: 13px;">${formData.apurador || '___________________________'} - ${formData.apuradorPosto} ${formData.apuradorQuadro} ${formData.apuradorEspecialidade ? `${formData.apuradorEspecialidade}` : ''}</p>
                 <p class="text-xs uppercase text-slate-500" style="margin: 0; font-size: 10px;">Oficial Apurador</p>
               </div>
 
@@ -1457,7 +1459,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
             <!-- Oficial Apurador -->
             <div class="text-center">
               <p style="font-size: 15px; font-weight: bold; color: #000000; margin: 0; text-transform: uppercase; letter-spacing: 1px;">Oficial Apurador</p>
-              <p class="text-black" style="font-size: 15px; font-weight: bold; margin: 8px 0 0 0; text-transform: uppercase;">${formData.apurador || '___________________________'} - ${formData.apuradorPosto} ${formData.apuradorQuadro}</p>
+              <p class="text-black" style="font-size: 15px; font-weight: bold; margin: 8px 0 0 0; text-transform: uppercase;">${formData.apurador || '___________________________'} - ${formData.apuradorPosto} ${formData.apuradorQuadro} ${formData.apuradorEspecialidade ? `${formData.apuradorEspecialidade}` : ''}</p>
               <div class="line-accent" style="margin-top: 5px !important;"></div>
             </div>
           </div>
@@ -1550,7 +1552,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
         <!-- Identificação do Oficial Apurador -->
         <div style="border: 1px solid #000000; padding: 6px; font-size: 12px; margin-bottom: 15px; color: #000000;">
           <p style="font-weight: bold; margin: 0 0 4px 0; font-size: 13px; text-transform: uppercase;">IDENTIFICAÇÃO DO OFICIAL APURADOR</p>
-          <p style="margin: 0 0 4px 0; font-size: 12px; text-transform: uppercase;">${formData.apurador || '___________________________'} - ${formData.apuradorPosto} ${formData.apuradorQuadro}</p>
+          <p style="margin: 0 0 4px 0; font-size: 12px; text-transform: uppercase;">${formData.apurador || '___________________________'} - ${formData.apuradorPosto} ${formData.apuradorQuadro} ${formData.apuradorEspecialidade ? `${formData.apuradorEspecialidade}` : ''}</p>
           <div style="display: flex; justify-content: space-between;">
             <span>SARAM: <strong>${formData.apuradorSaram || '_______'}</strong></span>
             <span>Seção/OM: <strong>${formData.divisao || '_______'}</strong></span>
@@ -1574,7 +1576,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
 
         <div class="signature-box text-center" style="margin-top: 20mm;">
           <div class="line mx-auto w-64 border-bottom mb-2" style="border-bottom: 1px solid #000000; width: 250px; margin-left: auto; margin-right: auto;"></div>
-          <p class="font-bold uppercase" style="margin: 0 0 2px 0; font-size: 13px;">${formData.apurador || '___________________________'} - ${formData.apuradorPosto} ${formData.apuradorQuadro}</p>
+          <p class="font-bold uppercase" style="margin: 0 0 2px 0; font-size: 13px;">${formData.apurador || '___________________________'} - ${formData.apuradorPosto} ${formData.apuradorQuadro} ${formData.apuradorEspecialidade ? `${formData.apuradorEspecialidade}` : ''}</p>
           <p class="text-xs uppercase text-slate-500" style="margin: 0; font-size: 10px;">Oficial Apurador</p>
         </div>
 
@@ -1749,10 +1751,12 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
           apurador: initialData.apurador || '',
           apuradorPosto: initialData.apuradorPosto || '1T',
           apuradorQuadro: initialData.apuradorQuadro || 'QOINT',
+          apuradorEspecialidade: initialData.apuradorEspecialidade || '',
           apuradorSaram: initialData.apuradorSaram || '',
           aplicador: initialData.aplicador || '',
           aplicadorPosto: initialData.aplicadorPosto || 'TC',
           aplicadorQuadro: initialData.aplicadorQuadro || 'QOAV',
+          aplicadorEspecialidade: initialData.aplicadorEspecialidade || '',
           aplicadorCargo: initialData.aplicadorCargo || '',
           oficioNumero: initialData.oficioNumero || '',
           protComaer: initialData.protComaer || '',
@@ -1821,10 +1825,12 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
       apurador: '',
       apuradorPosto: '1T',
       apuradorQuadro: 'QOINT',
+      apuradorEspecialidade: '',
       apuradorSaram: '',
       aplicador: '',
       aplicadorPosto: 'TC',
       aplicadorQuadro: 'QOAV',
+      aplicadorEspecialidade: '',
       aplicadorCargo: '',
       oficioNumero: '',
       protComaer: '',
@@ -1902,10 +1908,12 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
           apurador: ['apurador', 'oficialapurador', 'nomeapurador', 'nomedoapurador', 'apuradorencarregado', 'encarregado'],
           apuradorPosto: ['apuradorposto', 'postoapurador', 'postodoapurador', 'postoapuradorencarregado'],
           apuradorQuadro: ['apuradorquadro', 'quadroapurador', 'quadrodoapurador', 'quadroapuradorencarregado'],
+          apuradorEspecialidade: ['apuradorespecialidade', 'especialidadeapurador'],
           apuradorSaram: ['apuradorsaram', 'saramapurador', 'saramdoapurador', 'saramapuradorencarregado'],
           aplicador: ['aplicador', 'autoridadeaplicadora', 'nomeaplicador', 'nomedoaplicador'],
           aplicadorPosto: ['aplicadorposto', 'postoaplicador', 'postodoaplicador'],
           aplicadorQuadro: ['aplicadorquadro', 'quadroaplicador', 'quadrodoaplicador'],
+          aplicadorEspecialidade: ['aplicadorespecialidade', 'especialidadeaplicador'],
           aplicadorCargo: ['aplicadorcargo', 'cargoaplicador', 'cargodoaplicador'],
           oficioNumero: ['oficionumero', 'noficio', 'oficio', 'oficionum'],
           protComaer: ['protcomaer', 'protocolocomaer', 'protocolo', 'comaer'],
@@ -2388,10 +2396,12 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
     apurador: 'Apurador',
     apuradorPosto: 'Posto do Apurador',
     apuradorQuadro: 'Quadro do Apurador',
+    apuradorEspecialidade: 'Especialidade do Apurador',
     apuradorSaram: 'SARAM do Apurador',
     aplicador: 'Aplicador',
     aplicadorPosto: 'Posto do Aplicador',
     aplicadorQuadro: 'Quadro do Aplicador',
+    aplicadorEspecialidade: 'Especialidade do Aplicador',
     aplicadorCargo: 'Cargo do Aplicador',
     oficioNumero: 'Nº do Ofício',
     protComaer: 'Prot. COMAER nº',
@@ -2540,7 +2550,8 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
             apuradorSaram: data.saram,
             apurador: data.nome_completo,
             apuradorPosto: data.posto,
-            apuradorQuadro: data.quadro
+            apuradorQuadro: data.quadro,
+            apuradorEspecialidade: data.especialidade || ''
           }));
           
           const changes = [];
@@ -2548,6 +2559,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
           if (formData.apurador !== data.nome_completo) changes.push({ field: 'Apurador', old: formData.apurador, new: data.nome_completo });
           if (formData.apuradorPosto !== data.posto) changes.push({ field: 'Posto do Apurador', old: formData.apuradorPosto, new: data.posto });
           if (formData.apuradorQuadro !== data.quadro) changes.push({ field: 'Quadro do Apurador', old: formData.apuradorQuadro, new: data.quadro });
+          if (formData.apuradorEspecialidade !== (data.especialidade || '')) changes.push({ field: 'Especialidade do Apurador', old: formData.apuradorEspecialidade, new: data.especialidade || '' });
           
           if (changes.length > 0) {
             const historyItems = changes.map(c => ({
@@ -2580,10 +2592,12 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
         apurador: '',
         apuradorPosto: '1T',
         apuradorQuadro: 'QOINT',
+      apuradorEspecialidade: '',
         apuradorSaram: '',
         aplicador: '',
         aplicadorPosto: 'TC',
         aplicadorQuadro: 'QOAV',
+      aplicadorEspecialidade: '',
         aplicadorCargo: '',
         oficioNumero: '',
         protComaer: '',
@@ -3047,6 +3061,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                   </div>
                   <SelectField label="Posto" icon={Shield} value={formData.apuradorPosto} onChange={handleChange('apuradorPosto')} options={optionsPosto} />
                   <SelectField label="Quadro" icon={Briefcase} value={formData.apuradorQuadro} onChange={handleChange('apuradorQuadro')} options={optionsQuadro} />
+                  <AutocompleteInputField label="Especialidade" icon={Briefcase} value={formData.apuradorEspecialidade} onChange={handleChange('apuradorEspecialidade')} fieldName="apuradorEspecialidade" />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <AutocompleteInputField label="SARAM (Apurador)" icon={User} value={formData.apuradorSaram} onChange={handleChange('apuradorSaram')} onBlur={() => handleFieldBlur('apurador', 'saram')} onSearch={() => handleFieldBlur('apurador', 'saram')} placeholder="0000000" error={errors.apuradorSaram} fieldName="apuradorSaram" />
@@ -3063,6 +3078,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                   </div>
                   <SelectField label="Posto (Aplicador)" icon={Shield} value={formData.aplicadorPosto} onChange={handleChange('aplicadorPosto')} options={optionsPosto} disabled={currentUser?.role === 'Apurador'} />
                   <SelectField label="Quadro (Aplicador)" icon={Briefcase} value={formData.aplicadorQuadro} onChange={handleChange('aplicadorQuadro')} options={optionsQuadro} disabled={currentUser?.role === 'Apurador'} />
+                  <AutocompleteInputField label="Especialidade (Aplicador)" icon={Briefcase} value={formData.aplicadorEspecialidade} onChange={handleChange('aplicadorEspecialidade')} fieldName="aplicadorEspecialidade" disabled={currentUser?.role === 'Apurador'} />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                   <div className="md:col-span-2">
@@ -3327,10 +3343,12 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                 apurador: row.apurador || '',
                 apurador_posto: row.apuradorPosto || null,
                 apurador_quadro: row.apuradorQuadro || null,
+                apurador_especialidade: row.apuradorEspecialidade || null,
                 apurador_saram: row.apuradorSaram || null,
                 aplicador: row.aplicador || '',
                 aplicador_posto: row.aplicadorPosto || null,
                 aplicador_quadro: row.aplicadorQuadro || null,
+                aplicador_especialidade: row.aplicadorEspecialidade || null,
                 aplicador_cargo: row.aplicadorCargo || null,
                 oficio_numero: row.oficioNumero || null,
                 prot_comaer: row.protComaer || null,
@@ -3667,7 +3685,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                                 {/* Oficial Apurador */}
                                 <div className="text-center">
                                   <p style={{ fontSize: '13px', fontWeight: 'bold', margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#000000' }}>Oficial Apurador</p>
-                                  <p style={{ fontSize: '13px', fontWeight: 'bold', margin: '6px 0 2px 0', textTransform: 'uppercase', color: '#000000' }}>{formData.apurador || '___________________________'} - {formData.apuradorPosto} {formData.apuradorQuadro}</p>
+                                  <p style={{ fontSize: '13px', fontWeight: 'bold', margin: '6px 0 2px 0', textTransform: 'uppercase', color: '#000000' }}>{formData.apurador || '___________________________'} - {formData.apuradorPosto} {formData.apuradorQuadro} {formData.apuradorEspecialidade ? `${formData.apuradorEspecialidade}` : ''}</p>
                                   <div className="border-b border-black mt-1 mb-1 w-full"></div>
                                 </div>
                               </div>
@@ -3970,7 +3988,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                                 {/* Identificação do Oficial Apurador */}
                                 <div style={{ border: '1px solid #000000', padding: '6px', fontSize: '11px', marginBottom: '10px', color: '#000000' }}>
                                   <p style={{ fontWeight: 'bold', margin: '0 0 4px 0', fontSize: '11px', textTransform: 'uppercase' }}>IDENTIFICAÇÃO DO OFICIAL APURADOR</p>
-                                  <p style={{ margin: '0 0 4px 0', fontSize: '11px', textTransform: 'uppercase' }}>{formData.apurador || '___________________________'} - {formData.apuradorPosto} {formData.apuradorQuadro}</p>
+                                  <p style={{ margin: '0 0 4px 0', fontSize: '11px', textTransform: 'uppercase' }}>{formData.apurador || '___________________________'} - {formData.apuradorPosto} {formData.apuradorQuadro} {formData.apuradorEspecialidade ? `${formData.apuradorEspecialidade}` : ''}</p>
                                   <div style={{ display: 'flex', justifyContent: 'space-between', color: '#000000' }}>
                                     <span>SARAM: <strong>{formData.apuradorSaram || '_______'}</strong></span>
                                     <span>Seção/OM: <strong>{formData.divisao || '_______'}</strong></span>
@@ -3995,7 +4013,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
 
                               <div className="text-center mt-8">
                                 <div className="w-56 mx-auto mb-2" style={{ width: '200px', marginLeft: 'auto', marginRight: 'auto', borderBottom: '1px solid #000000' }} />
-                                <p className="font-bold uppercase text-[11px] text-slate-850" style={{ color: '#000000' }}>{formData.apurador || '___________________________'} - {formData.apuradorPosto} {formData.apuradorQuadro}</p>
+                                <p className="font-bold uppercase text-[11px] text-slate-850" style={{ color: '#000000' }}>{formData.apurador || '___________________________'} - {formData.apuradorPosto} {formData.apuradorQuadro} {formData.apuradorEspecialidade ? `${formData.apuradorEspecialidade}` : ''}</p>
                                 <p className="text-[9px] uppercase text-slate-400">Oficial Apurador</p>
                               </div>
 
