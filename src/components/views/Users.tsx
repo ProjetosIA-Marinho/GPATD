@@ -277,39 +277,93 @@ Seção de Investigação e Justiça (SIJ)`);
     ramal: ''
   });
 
-  const handleFieldBlur = async (field: 'saram' | 'nome') => {
-    const searchVal = field === 'saram' ? formData.saram : formData.name;
-    if (!searchVal) return;
+  // Efetivo lookup state
+  const [isSearchingEfetivo, setIsSearchingEfetivo] = useState<'nome' | 'saram' | null>(null);
+  const [efetivoSearchResults, setEfetivoSearchResults] = useState<any[]>([]);
+  const [efetivoSearchField, setEfetivoSearchField] = useState<'nome' | 'saram' | null>(null);
+  const [efetivoFeedback, setEfetivoFeedback] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+
+  // Auto clear feedback after 4.5s
+  React.useEffect(() => {
+    if (efetivoFeedback) {
+      const timer = setTimeout(() => setEfetivoFeedback(null), 4500);
+      return () => clearTimeout(timer);
+    }
+  }, [efetivoFeedback]);
+
+  const applyEfetivoRecord = (data: any) => {
+    setFormData((prev: any) => ({
+      ...prev,
+      saram: data.saram || prev.saram,
+      name: data.nome_completo || prev.name,
+      posto: data.posto || prev.posto,
+      divisao: loggedUser?.role === 'Operador' ? loggedUser.divisao : (data.divisao || prev.divisao),
+      email: data.email || prev.email,
+      login: data.email || prev.login,
+      telefone: data.telefone || prev.telefone,
+      ramal: data.ramal || prev.ramal
+    }));
+    setEfetivoSearchResults([]);
+    setEfetivoSearchField(null);
+    setEfetivoFeedback({
+      message: `Dados de ${data.posto ? data.posto + ' ' : ''}${data.nome_completo} preenchidos com sucesso pelo Efetivo!`,
+      type: 'success'
+    });
+  };
+
+  const handleSearchEfetivo = async (field: 'saram' | 'nome') => {
+    const rawVal = field === 'saram' ? formData.saram : formData.name;
+    const searchVal = rawVal?.trim();
+    if (!searchVal) {
+      setEfetivoFeedback({
+        message: `Informe o ${field === 'saram' ? 'SARAM' : 'Nome Completo'} para realizar a busca no efetivo.`,
+        type: 'info'
+      });
+      return;
+    }
 
     try {
+      setIsSearchingEfetivo(field);
+      setEfetivoSearchResults([]);
+      setEfetivoSearchField(null);
+
       let query = supabase.from('efetivo').select('*');
       if (loggedUser?.role === 'Operador') {
         query = query.eq('divisao', loggedUser.divisao);
       }
-      if (field === 'saram') {
-        query = query.eq('saram', searchVal.trim());
-      } else {
-        query = query.ilike('nome_completo', searchVal.trim());
-      }
       
-      const { data, error } = await query.maybeSingle();
+      if (field === 'saram') {
+        query = query.ilike('saram', `%${searchVal}%`);
+      } else {
+        query = query.ilike('nome_completo', `%${searchVal}%`);
+      }
+
+      const { data, error } = await query.limit(10);
       if (error) throw error;
 
-      if (data) {
-        setFormData((prev: any) => ({
-          ...prev,
-          saram: data.saram || prev.saram,
-          name: data.nome_completo || prev.name,
-          posto: data.posto || prev.posto,
-          divisao: data.divisao || prev.divisao,
-          email: data.email || prev.email,
-          login: data.email || prev.login,
-          telefone: data.telefone || prev.telefone,
-          ramal: data.ramal || prev.ramal
-        }));
+      if (!data || data.length === 0) {
+        setEfetivoFeedback({
+          message: `Nenhum militar encontrado no Efetivo com "${searchVal}".`,
+          type: 'error'
+        });
+      } else if (data.length === 1) {
+        applyEfetivoRecord(data[0]);
+      } else {
+        setEfetivoSearchResults(data);
+        setEfetivoSearchField(field);
+        setEfetivoFeedback({
+          message: `${data.length} militares encontrados. Selecione um na lista abaixo:`,
+          type: 'info'
+        });
       }
     } catch (err) {
-      console.error('Error fetching details from efetivo for user:', err);
+      console.error('Error searching efetivo:', err);
+      setEfetivoFeedback({
+        message: 'Erro ao consultar banco de dados de efetivo.',
+        type: 'error'
+      });
+    } finally {
+      setIsSearchingEfetivo(null);
     }
   };
 
@@ -386,6 +440,11 @@ Seção de Investigação e Justiça (SIJ)`);
   };
 
   const handleOpenModal = (user?: User) => {
+    setIsSearchingEfetivo(null);
+    setEfetivoSearchResults([]);
+    setEfetivoSearchField(null);
+    setEfetivoFeedback(null);
+
     if (user) {
       setCurrentUser(user);
       setFormData({
@@ -420,6 +479,10 @@ Seção de Investigação e Justiça (SIJ)`);
     setIsModalOpen(false);
     setCurrentUser(null);
     setShowPassword(false);
+    setIsSearchingEfetivo(null);
+    setEfetivoSearchResults([]);
+    setEfetivoSearchField(null);
+    setEfetivoFeedback(null);
     setFormData({
       name: '',
       posto: '',
@@ -942,45 +1005,201 @@ Seção de Investigação e Justiça (SIJ)`);
                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Identificação Militar</h4>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-1.5 flex-1">
-                        <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Nome Completo</label>
-                        <div className="relative group">
-                          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 group-focus-within:text-indigo-500 transition-colors">
-                             <UserSoloIcon size={16} />
+                    {/* Efetivo Lookup Alert Banner */}
+                    <AnimatePresence>
+                      {efetivoFeedback && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -6 }}
+                          className={`p-3 rounded-xl border flex items-center justify-between text-xs font-semibold ${
+                            efetivoFeedback.type === 'success'
+                              ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300'
+                              : efetivoFeedback.type === 'error'
+                              ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300'
+                              : 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-200 dark:border-indigo-800 text-indigo-800 dark:text-indigo-300'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            {efetivoFeedback.type === 'success' && <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400 shrink-0" />}
+                            {efetivoFeedback.type === 'error' && <AlertCircle size={16} className="text-rose-600 dark:text-rose-400 shrink-0" />}
+                            {efetivoFeedback.type === 'info' && <Search size={16} className="text-indigo-600 dark:text-indigo-400 shrink-0" />}
+                            <span>{efetivoFeedback.message}</span>
                           </div>
-                          <input 
-                            required
-                            type="text" 
-                            value={formData.name}
-                            onChange={(e) => setFormData({...formData, name: e.target.value})}
-                            onBlur={() => handleFieldBlur('nome')}
-                            className="w-full h-11 pl-10 pr-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-750 focus:bg-white dark:focus:bg-slate-800 focus:outline-hidden focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all text-sm font-medium text-slate-900 dark:text-white placeholder:text-slate-300 dark:placeholder:text-slate-600"
-                            placeholder="Ex: Cap Marinho"
-                          />
+                          <button
+                            type="button"
+                            onClick={() => setEfetivoFeedback(null)}
+                            className="p-1 hover:opacity-75 transition-opacity cursor-pointer"
+                          >
+                            <X size={14} />
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Campo Nome Completo com Lupa */}
+                      <div className="space-y-1.5 flex-1 relative">
+                        <div className="flex items-center justify-between">
+                          <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Nome Completo</label>
+                          <span className="text-[9px] text-slate-400 dark:text-slate-500 font-bold">Busca no Efetivo</span>
                         </div>
+                        <div className="flex items-center gap-2">
+                          <div className="relative group flex-1">
+                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 group-focus-within:text-indigo-500 transition-colors">
+                               <UserSoloIcon size={16} />
+                            </div>
+                            <input 
+                              required
+                              type="text" 
+                              value={formData.name}
+                              onChange={(e) => setFormData({...formData, name: e.target.value})}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  handleSearchEfetivo('nome');
+                                }
+                              }}
+                              className="w-full h-11 pl-10 pr-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-750 focus:bg-white dark:focus:bg-slate-800 focus:outline-hidden focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all text-sm font-medium text-slate-900 dark:text-white placeholder:text-slate-300 dark:placeholder:text-slate-600"
+                              placeholder="Ex: Cap Marinho ou parte do nome"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleSearchEfetivo('nome')}
+                            disabled={!formData.name?.trim() || isSearchingEfetivo !== null}
+                            className="h-11 w-11 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white transition-all flex items-center justify-center cursor-pointer shadow-md shadow-indigo-500/20 shrink-0 active:scale-95"
+                            title="Buscar militar no Efetivo pelo Nome (Enter)"
+                          >
+                            {isSearchingEfetivo === 'nome' ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
+                          </button>
+                        </div>
+
+                        {/* Dropdown de Resultados da Busca por Nome */}
+                        <AnimatePresence>
+                          {efetivoSearchResults.length > 0 && efetivoSearchField === 'nome' && (
+                            <>
+                              <div className="fixed inset-0 z-40" onClick={() => setEfetivoSearchField(null)} />
+                              <motion.div
+                                initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                                className="absolute left-0 right-0 top-full mt-2 p-1.5 z-50 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 max-h-56 overflow-y-auto custom-scrollbar"
+                              >
+                                <div className="px-3 py-1.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-slate-400">
+                                  <span>Selecione um militar</span>
+                                  <span>{efetivoSearchResults.length} encontrados</span>
+                                </div>
+                                <div className="p-1 space-y-1">
+                                  {efetivoSearchResults.map((militar: any, mIdx: number) => (
+                                    <button
+                                      key={mIdx}
+                                      type="button"
+                                      onClick={() => applyEfetivoRecord(militar)}
+                                      className="w-full p-2.5 rounded-xl hover:bg-indigo-50 dark:hover:bg-indigo-950/40 text-left transition-colors flex items-center justify-between group/militar border border-transparent hover:border-indigo-100 dark:hover:border-indigo-800 cursor-pointer"
+                                    >
+                                      <div className="min-w-0 pr-2">
+                                        <p className="text-xs font-bold text-slate-800 dark:text-white group-hover/militar:text-indigo-600 dark:group-hover/militar:text-indigo-400 truncate">
+                                          {militar.posto} {militar.nome_completo}
+                                        </p>
+                                        <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                          SARAM: <strong className="text-slate-700 dark:text-slate-300">{militar.saram}</strong> • {militar.divisao || 'Sem divisão'} {militar.quadro ? `• ${militar.quadro}` : ''}
+                                        </p>
+                                      </div>
+                                      <div className="shrink-0 px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-indigo-600 dark:text-indigo-400 group-hover/militar:bg-indigo-600 group-hover/militar:text-white transition-colors">
+                                        Preencher
+                                      </div>
+                                    </button>
+                                  ))}
+                                </div>
+                              </motion.div>
+                            </>
+                          )}
+                        </AnimatePresence>
                       </div>
                       
-                      <div className="space-y-1.5 flex-1">
-                        <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">SARAM (7 dígitos)</label>
-                        <div className="relative group">
-                          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 group-focus-within:text-indigo-500 transition-colors">
-                             <Hash size={16} />
-                          </div>
-                          <input 
-                            required
-                            maxLength={7}
-                            type="text" 
-                            value={formData.saram}
-                            onChange={(e) => {
-                              const val = e.target.value.replace(/\D/g, '');
-                              setFormData({...formData, saram: val});
-                            }}
-                            onBlur={() => handleFieldBlur('saram')}
-                            className="w-full h-11 pl-10 pr-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-750 focus:bg-white dark:focus:bg-slate-800 focus:outline-hidden focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all text-sm font-medium text-slate-900 dark:text-white placeholder:text-slate-300 dark:placeholder:text-slate-600"
-                            placeholder="1234567"
-                          />
+                      {/* Campo SARAM com Lupa */}
+                      <div className="space-y-1.5 flex-1 relative">
+                        <div className="flex items-center justify-between">
+                          <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">SARAM (7 dígitos)</label>
+                          <span className="text-[9px] text-slate-400 dark:text-slate-500 font-bold">Busca no Efetivo</span>
                         </div>
+                        <div className="flex items-center gap-2">
+                          <div className="relative group flex-1">
+                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 group-focus-within:text-indigo-500 transition-colors">
+                               <Hash size={16} />
+                            </div>
+                            <input 
+                              required
+                              maxLength={7}
+                              type="text" 
+                              value={formData.saram}
+                              onChange={(e) => {
+                                const val = e.target.value.replace(/\D/g, '');
+                                setFormData({...formData, saram: val});
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  handleSearchEfetivo('saram');
+                                }
+                              }}
+                              className="w-full h-11 pl-10 pr-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-750 focus:bg-white dark:focus:bg-slate-800 focus:outline-hidden focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all text-sm font-medium text-slate-900 dark:text-white placeholder:text-slate-300 dark:placeholder:text-slate-600"
+                              placeholder="1234567"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleSearchEfetivo('saram')}
+                            disabled={!formData.saram?.trim() || isSearchingEfetivo !== null}
+                            className="h-11 w-11 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white transition-all flex items-center justify-center cursor-pointer shadow-md shadow-indigo-500/20 shrink-0 active:scale-95"
+                            title="Buscar militar no Efetivo pelo SARAM (Enter)"
+                          >
+                            {isSearchingEfetivo === 'saram' ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
+                          </button>
+                        </div>
+
+                        {/* Dropdown de Resultados da Busca por SARAM */}
+                        <AnimatePresence>
+                          {efetivoSearchResults.length > 0 && efetivoSearchField === 'saram' && (
+                            <>
+                              <div className="fixed inset-0 z-40" onClick={() => setEfetivoSearchField(null)} />
+                              <motion.div
+                                initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                                className="absolute left-0 right-0 top-full mt-2 p-1.5 z-50 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 max-h-56 overflow-y-auto custom-scrollbar"
+                              >
+                                <div className="px-3 py-1.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-slate-400">
+                                  <span>Selecione um militar</span>
+                                  <span>{efetivoSearchResults.length} encontrados</span>
+                                </div>
+                                <div className="p-1 space-y-1">
+                                  {efetivoSearchResults.map((militar: any, mIdx: number) => (
+                                    <button
+                                      key={mIdx}
+                                      type="button"
+                                      onClick={() => applyEfetivoRecord(militar)}
+                                      className="w-full p-2.5 rounded-xl hover:bg-indigo-50 dark:hover:bg-indigo-950/40 text-left transition-colors flex items-center justify-between group/militar border border-transparent hover:border-indigo-100 dark:hover:border-indigo-800 cursor-pointer"
+                                    >
+                                      <div className="min-w-0 pr-2">
+                                        <p className="text-xs font-bold text-slate-800 dark:text-white group-hover/militar:text-indigo-600 dark:group-hover/militar:text-indigo-400 truncate">
+                                          {militar.posto} {militar.nome_completo}
+                                        </p>
+                                        <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                          SARAM: <strong className="text-slate-700 dark:text-slate-300">{militar.saram}</strong> • {militar.divisao || 'Sem divisão'} {militar.quadro ? `• ${militar.quadro}` : ''}
+                                        </p>
+                                      </div>
+                                      <div className="shrink-0 px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-indigo-600 dark:text-indigo-400 group-hover/militar:bg-indigo-600 group-hover/militar:text-white transition-colors">
+                                        Preencher
+                                      </div>
+                                    </button>
+                                  ))}
+                                </div>
+                              </motion.div>
+                            </>
+                          )}
+                        </AnimatePresence>
                       </div>
                     </div>
 
