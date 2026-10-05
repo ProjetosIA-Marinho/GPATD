@@ -13,6 +13,7 @@ export function normalizeDivision(div?: string | null): string {
   if (clean === 'GSD' || clean === 'GSD-YS') return 'GSD-YS';
   if (clean === 'GSAU' || clean === 'GSAU-YS') return 'GSAU-YS';
   if (clean === 'FAYS' || clean === 'FAZENDA DA AERONÁUTICA DE PIRASSUNUNGA' || clean === 'FAZENDA DE AERONÁUTICA DE PIRASSUNUNGA' || clean === 'FAZENDA') return 'FAYS';
+  if (clean === 'DTCEA-YS' || clean === 'DTCEA - YS' || clean === 'DTCEA YS' || clean === 'DTCEA' || clean === 'DESTACAMENTO DE CONTROLE DO ESPAÇO AÉREO DE PIRASSUNUNGA' || clean === 'DESTACAMENTO DE CONTROLE DO ESPAÇO AÉREO') return 'DTCEA-YS';
   
   return clean;
 }

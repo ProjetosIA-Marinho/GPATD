@@ -786,13 +786,27 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
     docArquivado: false
   });
 
-  const isFays = Boolean(
-    (currentUser?.divisao && normalizeDivision(currentUser.divisao) === 'FAYS') ||
-    (formData.divisao && normalizeDivision(formData.divisao) === 'FAYS')
-  );
-  const omName = isFays ? 'FAZENDA DA AERONÁUTICA DE PIRASSUNUNGA' : 'Academia da Força Aérea';
-  const stampPath = isFays ? '/sinete_fays.png' : '/sinete.png';
-  const fatdPortariaItem = isFays ? 'Portaria nº 255/SERH, de 30 de março de 2026' : 'Portaria nº 853/SIJ, de 27 de abril de 2026';
+  const userDivision = normalizeDivision(currentUser?.divisao || formData.divisao);
+  const isFays = userDivision === 'FAYS';
+  const isDtcea = userDivision === 'DTCEA-YS';
+
+  const omName = isFays
+    ? 'FAZENDA DA AERONÁUTICA DE PIRASSUNUNGA'
+    : isDtcea
+    ? 'DESTACAMENTO DE CONTROLE DO ESPAÇO AÉREO DE PIRASSUNUNGA'
+    : 'Academia da Força Aérea';
+
+  const stampPath = isFays
+    ? '/sinete_fays.png'
+    : isDtcea
+    ? '/sinete_dtcea_ys.png'
+    : '/sinete.png';
+
+  const fatdPortariaItem = isFays
+    ? 'Portaria nº 255/SERH, de 30 de março de 2026'
+    : isDtcea
+    ? 'Portaria CINDACTA I nº 682/SSIJ, de 24 de agosto de 2026'
+    : 'Portaria nº 853/SIJ, de 27 de abril de 2026';
 
   const printDocument = async (type: string) => {
     if (type === 'delegacao') {
@@ -1018,7 +1032,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
 
               <div class="body-text text-justify" style="font-size: 13px; line-height: 1.6;">
                 <p style="text-indent: 3rem; margin-top: 15px; text-align: justify;">
-                  ${isFays ? `Considerando o disposto no art. 1º da Portaria nº 255/SERH, de 30 de março de 2026, publicada no Boletim Interno Ostensivo n º 59, de 1º de abril de 2026, que designa oficiais da FAZENDA DA AERONÁUTICA DE PIRASSUNUNGA (FAYS) para apurar transgressão disciplinar, no âmbito desta Organização Militar, c/c o item 3.1 da ICA 111-6, aprovada pela Portaria GABAER nº 120/GC3 de 9 de julho de 2021, determino a abertura de Processo de Apuração de Transgressão Disciplinar (PATD), com a finalidade de apurar os fatos relatados no Ofício nº <strong>${formData.oficioNumero || '_______'}</strong>, (Prot. COMAER nº <strong>${formData.protComaer || '_______'}</strong>), de <strong>${formatDateStr(formData.dataOficio)}</strong>.` : `Considerando o disposto no art. 1º da Portaria nº 853/SIJ, de 27 de abril de 2026, publicada no Boletim Interno Ostensivo n º 75, de 29 de abril de 2026, que designa oficiais para apurar transgressão disciplinar e autoridades para aplicar punição disciplinar, no âmbito desta Organização Militar, c/c o item 3.1 da ICA 111-6, aprovada pela Portaria GABAER nº 120/GC3 de 9 de julho de 2021, determino a abertura de Processo de Apuração de Transgressão Disciplinar (PATD), com a finalidade de apurar os fatos relatados no Ofício nº <strong>${formData.oficioNumero || '_______'}</strong>, (Prot. COMAER nº <strong>${formData.protComaer || '_______'}</strong>), de <strong>${formatDateStr(formData.dataOficio)}</strong>.`}
+                  ${isFays ? `Considerando o disposto no art. 1º da Portaria nº 255/SERH, de 30 de março de 2026, publicada no Boletim Interno Ostensivo n º 59, de 1º de abril de 2026, que designa oficiais da FAZENDA DA AERONÁUTICA DE PIRASSUNUNGA (FAYS) para apurar transgressão disciplinar, no âmbito desta Organização Militar, c/c o item 3.1 da ICA 111-6, aprovada pela Portaria GABAER nº 120/GC3 de 9 de julho de 2021, determino a abertura de Processo de Apuração de Transgressão Disciplinar (PATD), com a finalidade de apurar os fatos relatados no Ofício nº <strong>${formData.oficioNumero || '_______'}</strong>, (Prot. COMAER nº <strong>${formData.protComaer || '_______'}</strong>), de <strong>${formatDateStr(formData.dataOficio)}</strong>.` : isDtcea ? `Considerando o disposto no art. 1º da Portaria CINDACTA I nº 682/SSIJ, de 24 de agosto de 2026, publicada no Boletim Interno Ostensivo n º 145, de 25 de agosto de 2026, do GAP-DF, que designa os Oficias de todos os Destacamentos subordinados ao CINDACTA I para, na condição de Oficial Apurador, efetuar a apuração de transgressão disciplinar e propor solução à Autoridade competente, relativamente ao efetivo de seus respectivos Destacamentos, c/c o item 3.1 da ICA 111-6, aprovada pela Portaria GABAER nº 120/GC3 de 9 de julho de 2021, determino a abertura de Processo de Apuração de Transgressão Disciplinar (PATD), com a finalidade de apurar os fatos relatados no Ofício nº <strong>${formData.oficioNumero || '_______'}</strong>, (Prot. COMAER nº <strong>${formData.protComaer || '_______'}</strong>), de <strong>${formatDateStr(formData.dataOficio)}</strong>.` : `Considerando o disposto no art. 1º da Portaria nº 853/SIJ, de 27 de abril de 2026, publicada no Boletim Interno Ostensivo n º 75, de 29 de abril de 2026, que designa oficiais para apurar transgressão disciplinar e autoridades para aplicar punição disciplinar, no âmbito desta Organização Militar, c/c o item 3.1 da ICA 111-6, aprovada pela Portaria GABAER nº 120/GC3 de 9 de julho de 2021, determino a abertura de Processo de Apuração de Transgressão Disciplinar (PATD), com a finalidade de apurar os fatos relatados no Ofício nº <strong>${formData.oficioNumero || '_______'}</strong>, (Prot. COMAER nº <strong>${formData.protComaer || '_______'}</strong>), de <strong>${formatDateStr(formData.dataOficio)}</strong>.`}
                 </p>
                 
                 <p style="text-indent: 3rem; margin-top: 15px; text-align: justify;">
@@ -1534,7 +1548,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
 
         <div class="body-text text-justify" style="font-size: 13px; line-height: 1.6;">
           <p style="text-indent: 3rem; margin-top: 15px; text-align: justify;">
-            ${isFays ? `Considerando o disposto no art. 1º da Portaria nº 255/SERH, de 30 de março de 2026, publicada no Boletim Interno Ostensivo n º 59, de 1º de abril de 2026, que designa oficiais da FAZENDA DA AERONÁUTICA DE PIRASSUNUNGA (FAYS) para apurar transgressão disciplinar, no âmbito desta Organização Militar, c/c o item 3.1 da ICA 111-6, aprovada pela Portaria GABAER nº 120/GC3 de 9 de julho de 2021, determino a abertura de Processo de Apuração de Transgressão Disciplinar (PATD), com a finalidade de apurar os fatos relatados no Ofício nº <strong>${formData.oficioNumero || '_______'}</strong>, (Prot. COMAER nº <strong>${formData.protComaer || '_______'}</strong>), de <strong>${formatDateStr(formData.dataOficio)}</strong>.` : `Considerando o disposto no art. 1º da Portaria nº 853/SIJ, de 27 de abril de 2026, publicada no Boletim Interno Ostensivo n º 75, de 29 de abril de 2026, que designa oficiais para apurar transgressão disciplinar e autoridades para aplicar punição disciplinar, no âmbito desta Organização Militar, c/c o item 3.1 da ICA 111-6, aprovada pela Portaria GABAER nº 120/GC3 de 9 de julho de 2021, determino a abertura de Processo de Apuração de Transgressão Disciplinar (PATD), com a finalidade de apurar os fatos relatados no Ofício nº <strong>${formData.oficioNumero || '_______'}</strong>, (Prot. COMAER nº <strong>${formData.protComaer || '_______'}</strong>), de <strong>${formatDateStr(formData.dataOficio)}</strong>.`}
+            ${isFays ? `Considerando o disposto no art. 1º da Portaria nº 255/SERH, de 30 de março de 2026, publicada no Boletim Interno Ostensivo n º 59, de 1º de abril de 2026, que designa oficiais da FAZENDA DA AERONÁUTICA DE PIRASSUNUNGA (FAYS) para apurar transgressão disciplinar, no âmbito desta Organização Militar, c/c o item 3.1 da ICA 111-6, aprovada pela Portaria GABAER nº 120/GC3 de 9 de julho de 2021, determino a abertura de Processo de Apuração de Transgressão Disciplinar (PATD), com a finalidade de apurar os fatos relatados no Ofício nº <strong>${formData.oficioNumero || '_______'}</strong>, (Prot. COMAER nº <strong>${formData.protComaer || '_______'}</strong>), de <strong>${formatDateStr(formData.dataOficio)}</strong>.` : isDtcea ? `Considerando o disposto no art. 1º da Portaria CINDACTA I nº 682/SSIJ, de 24 de agosto de 2026, publicada no Boletim Interno Ostensivo n º 145, de 25 de agosto de 2026, do GAP-DF, que designa os Oficias de todos os Destacamentos subordinados ao CINDACTA I para, na condição de Oficial Apurador, efetuar a apuração de transgressão disciplinar e propor solução à Autoridade competente, relativamente ao efetivo de seus respectivos Destacamentos, c/c o item 3.1 da ICA 111-6, aprovada pela Portaria GABAER nº 120/GC3 de 9 de julho de 2021, determino a abertura de Processo de Apuração de Transgressão Disciplinar (PATD), com a finalidade de apurar os fatos relatados no Ofício nº <strong>${formData.oficioNumero || '_______'}</strong>, (Prot. COMAER nº <strong>${formData.protComaer || '_______'}</strong>), de <strong>${formatDateStr(formData.dataOficio)}</strong>.` : `Considerando o disposto no art. 1º da Portaria nº 853/SIJ, de 27 de abril de 2026, publicada no Boletim Interno Ostensivo n º 75, de 29 de abril de 2026, que designa oficiais para apurar transgressão disciplinar e autoridades para aplicar punição disciplinar, no âmbito desta Organização Militar, c/c o item 3.1 da ICA 111-6, aprovada pela Portaria GABAER nº 120/GC3 de 9 de julho de 2021, determino a abertura de Processo de Apuração de Transgressão Disciplinar (PATD), com a finalidade de apurar os fatos relatados no Ofício nº <strong>${formData.oficioNumero || '_______'}</strong>, (Prot. COMAER nº <strong>${formData.protComaer || '_______'}</strong>), de <strong>${formatDateStr(formData.dataOficio)}</strong>.`}
           </p>
           
           <p style="text-indent: 3rem; margin-top: 15px; text-align: justify;">
@@ -3985,6 +3999,10 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                                 {isFays ? (
                                   <p style={{ textIndent: '2.5rem', marginTop: '10px', textAlign: 'justify' }}>
                                     Considerando o disposto no art. 1º da Portaria nº 255/SERH, de 30 de março de 2026, publicada no Boletim Interno Ostensivo n º 59, de 1º de abril de 2026, que designa oficiais da FAZENDA DA AERONÁUTICA DE PIRASSUNUNGA (FAYS) para apurar transgressão disciplinar, no âmbito desta Organização Militar, c/c o item 3.1 da ICA 111-6, aprovada pela Portaria GABAER nº 120/GC3 de 9 de julho de 2021, determino a abertura de Processo de Apuração de Transgressão Disciplinar (PATD), com a finalidade de apurar os fatos relatados no Ofício nº <strong>{formData.oficioNumero || '_______'}</strong>, (Prot. COMAER nº <strong>{formData.protComaer || '_______'}</strong>), de <strong>{formatDateStr(formData.dataOficio)}</strong>.
+                                  </p>
+                                ) : isDtcea ? (
+                                  <p style={{ textIndent: '2.5rem', marginTop: '10px', textAlign: 'justify' }}>
+                                    Considerando o disposto no art. 1º da Portaria CINDACTA I nº 682/SSIJ, de 24 de agosto de 2026, publicada no Boletim Interno Ostensivo n º 145, de 25 de agosto de 2026, do GAP-DF, que designa os Oficias de todos os Destacamentos subordinados ao CINDACTA I para, na condição de Oficial Apurador, efetuar a apuração de transgressão disciplinar e propor solução à Autoridade competente, relativamente ao efetivo de seus respectivos Destacamentos, c/c o item 3.1 da ICA 111-6, aprovada pela Portaria GABAER nº 120/GC3 de 9 de julho de 2021, determino a abertura de Processo de Apuração de Transgressão Disciplinar (PATD), com a finalidade de apurar os fatos relatados no Ofício nº <strong>{formData.oficioNumero || '_______'}</strong>, (Prot. COMAER nº <strong>{formData.protComaer || '_______'}</strong>), de <strong>{formatDateStr(formData.dataOficio)}</strong>.
                                   </p>
                                 ) : (
                                   <p style={{ textIndent: '2.5rem', marginTop: '10px', textAlign: 'justify' }}>
