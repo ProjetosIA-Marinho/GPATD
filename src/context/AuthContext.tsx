@@ -21,6 +21,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      if (session?.user?.email) {
+        localStorage.setItem('logged_user_email', session.user.email.toLowerCase().trim());
+      } else {
+        localStorage.removeItem('logged_user_email');
+      }
       setIsLoading(false);
     });
 
@@ -28,6 +33,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+      if (session?.user?.email) {
+        localStorage.setItem('logged_user_email', session.user.email.toLowerCase().trim());
+      } else {
+        localStorage.removeItem('logged_user_email');
+      }
       setIsLoading(false);
     });
 
@@ -35,6 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signOut = async () => {
+    localStorage.removeItem('logged_user_email');
     await supabase.auth.signOut();
   };
 

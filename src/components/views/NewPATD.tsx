@@ -31,6 +31,7 @@ import {
 import { AnimatePresence } from 'motion/react';
 import { Division } from './Divisions';
 import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../context/AuthContext';
 import * as XLSX from 'xlsx';
 import { isSameDivision, normalizeDivision } from '../../utils/divisionUtils';
 
@@ -93,24 +94,38 @@ const InputField = ({ label, icon: Icon, value, onChange, placeholder, disabled 
 );
 
 const AutocompleteInputField = ({ label, icon: Icon, value, onChange, placeholder, disabled = false, type = "text", error, fieldName, onBlur, onSearch }: any) => {
+  const { user } = useAuth();
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Load options from localStorage (scoped per logged user email if available)
+  const activeEmail = (user?.email || localStorage.getItem('logged_user_email') || '').toLowerCase().trim();
+
+  // Load options from localStorage (strictly scoped per logged user email)
   useEffect(() => {
-    const userEmail = localStorage.getItem('logged_user_email') || 'anonymous';
-    const key = `patd_field_memory_${userEmail}_${fieldName}`;
+    if (!activeEmail) {
+      setSuggestions([]);
+      return;
+    }
+    const key = `patd_field_memory_${activeEmail}_${fieldName}`;
     try {
       const saved = localStorage.getItem(key);
       if (saved) {
-        setSuggestions(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          setSuggestions(parsed);
+        } else {
+          setSuggestions([]);
+        }
+      } else {
+        setSuggestions([]);
       }
     } catch (e) {
       console.error('Error parsing autocomplete options:', e);
+      setSuggestions([]);
     }
-  }, [fieldName, showDropdown]);
+  }, [fieldName, showDropdown, activeEmail]);
 
   // Filter options when value changes
   useEffect(() => {
@@ -139,6 +154,20 @@ const AutocompleteInputField = ({ label, icon: Icon, value, onChange, placeholde
   const handleSelect = (val: string) => {
     onChange({ target: { value: val } });
     setShowDropdown(false);
+  };
+
+  const handleDeleteSuggestion = (e: React.MouseEvent, itemToDelete: string) => {
+    e.stopPropagation();
+    if (!activeEmail) return;
+    const key = `patd_field_memory_${activeEmail}_${fieldName}`;
+    const updated = suggestions.filter(s => s !== itemToDelete);
+    setSuggestions(updated);
+    setFilteredSuggestions(prev => prev.filter(s => s !== itemToDelete));
+    try {
+      localStorage.setItem(key, JSON.stringify(updated));
+    } catch (err) {
+      console.error('Error removing suggestion:', err);
+    }
   };
 
   return (
@@ -189,14 +218,21 @@ const AutocompleteInputField = ({ label, icon: Icon, value, onChange, placeholde
             className="absolute left-0 right-0 top-full mt-2 p-1.5 z-50 bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-100 dark:border-slate-800 max-h-48 overflow-y-auto custom-scrollbar"
           >
             {filteredSuggestions.map((suggestion) => (
-              <button
+              <div
                 key={suggestion}
-                type="button"
                 onClick={() => handleSelect(suggestion)}
-                className="w-full px-3 py-2 text-left text-xs font-semibold rounded-lg hover:bg-indigo-500 hover:text-white text-slate-700 dark:text-slate-300 dark:hover:bg-indigo-700 transition-all block"
+                className="w-full px-3 py-2 text-left text-xs font-semibold rounded-lg hover:bg-indigo-500 hover:text-white text-slate-700 dark:text-slate-300 dark:hover:bg-indigo-700 transition-all flex items-center justify-between group/item cursor-pointer"
               >
-                {suggestion}
-              </button>
+                <span className="truncate pr-2">{suggestion}</span>
+                <button
+                  type="button"
+                  onClick={(e) => handleDeleteSuggestion(e, suggestion)}
+                  className="opacity-0 group-hover/item:opacity-100 p-1 hover:bg-rose-500 hover:text-white rounded text-slate-400 dark:text-slate-500 transition-all shrink-0"
+                  title="Remover da minha memória"
+                >
+                  <X size={12} />
+                </button>
+              </div>
             ))}
           </motion.div>
         )}
@@ -668,6 +704,7 @@ const ImportModal = ({ isOpen, onClose, data, onSelect, onSelectMultiple }: { is
 };
 
 export default function NewPATD({ initialData, onSave, divisions = [], currentUser, processes = [] }: { initialData?: any, onSave?: (data: any) => void, divisions?: Division[], currentUser?: any, processes?: any[] }) {
+  const { user } = useAuth();
   const currentYear = new Date().getFullYear();
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isDocModalOpen, setIsDocModalOpen] = useState(false);
@@ -1794,7 +1831,8 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
     }
 
     // Creating new process: check localStorage form memory
-    const key = 'new_patd_form_memory';
+    const userEmail = (user?.email || currentUser?.email || localStorage.getItem('logged_user_email') || 'user').toLowerCase().trim();
+    const key = `new_patd_form_memory_${userEmail}`;
     try {
       const saved = localStorage.getItem(key);
       if (saved) {
@@ -1852,17 +1890,18 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
     });
     setHistory([]);
     setIsFormLoaded(true);
-  }, [initialData, currentUser]);
+  }, [initialData, currentUser, user]);
 
   // Auto-save form data on changes, only after form is loaded
   useEffect(() => {
     if (!isFormLoaded) return;
+    const userEmail = (user?.email || currentUser?.email || localStorage.getItem('logged_user_email') || 'user').toLowerCase().trim();
     const key = initialData 
-      ? (initialData._isPrefilledNew ? 'new_patd_form_memory' : `edit_patd_form_memory_${initialData.id}`)
-      : 'new_patd_form_memory';
+      ? (initialData._isPrefilledNew ? `new_patd_form_memory_${userEmail}` : `edit_patd_form_memory_${initialData.id}_${userEmail}`)
+      : `new_patd_form_memory_${userEmail}`;
     localStorage.setItem(key, JSON.stringify(formData));
     localStorage.setItem(`${key}_history`, JSON.stringify(history));
-  }, [formData, history, initialData, isFormLoaded]);
+  }, [formData, history, initialData, isFormLoaded, user, currentUser]);
 
   const handleFileClick = () => {
     fileInputRef.current?.click();
@@ -2621,9 +2660,10 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
       setFormData(emptyForm);
       setSeqTrigger(prev => prev + 1);
       setErrors({});
+      const userEmail = (user?.email || currentUser?.email || localStorage.getItem('logged_user_email') || 'user').toLowerCase().trim();
       const key = initialData 
-        ? (initialData._isPrefilledNew ? 'new_patd_form_memory' : `edit_patd_form_memory_${initialData.id}`)
-        : 'new_patd_form_memory';
+        ? (initialData._isPrefilledNew ? `new_patd_form_memory_${userEmail}` : `edit_patd_form_memory_${initialData.id}_${userEmail}`)
+        : `new_patd_form_memory_${userEmail}`;
       localStorage.removeItem(key);
       localStorage.removeItem(`${key}_history`);
     }
@@ -2659,26 +2699,38 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
       return;
     }
 
-    // Save field memory for autocomplete (scoped per logged user email if available)
-    const fieldsToRemember = ['nomeCompleto', 'saram', 'especialidade', 'apurador', 'aplicador', 'aplicadorCargo'];
-    const userEmail = localStorage.getItem('logged_user_email') || 'anonymous';
-    fieldsToRemember.forEach(field => {
-      const val = formData[field]?.trim();
-      if (val) {
-        const key = `patd_field_memory_${userEmail}_${field}`;
-        try {
-          const saved = localStorage.getItem(key);
-          let list: string[] = saved ? JSON.parse(saved) : [];
-          if (!list.includes(val)) {
+    // Save field memory for autocomplete (strictly scoped per logged user email)
+    const activeUserEmail = (user?.email || currentUser?.email || localStorage.getItem('logged_user_email') || '').toLowerCase().trim();
+    if (activeUserEmail) {
+      const fieldsToRemember = [
+        'nomeCompleto', 
+        'saram', 
+        'especialidade', 
+        'apurador', 
+        'apuradorEspecialidade', 
+        'apuradorSaram', 
+        'aplicador', 
+        'aplicadorEspecialidade', 
+        'aplicadorCargo'
+      ];
+      fieldsToRemember.forEach(field => {
+        const val = formData[field]?.trim();
+        if (val) {
+          const key = `patd_field_memory_${activeUserEmail}_${field}`;
+          try {
+            const saved = localStorage.getItem(key);
+            let list: string[] = saved ? JSON.parse(saved) : [];
+            if (!Array.isArray(list)) list = [];
+            list = list.filter(item => item.toLowerCase() !== val.toLowerCase());
             list.unshift(val);
-            list = list.slice(0, 10);
+            list = list.slice(0, 15);
             localStorage.setItem(key, JSON.stringify(list));
+          } catch (e) {
+            console.error(`Error saving field memory for ${field}:`, e);
           }
-        } catch (e) {
-          console.error(`Error saving field memory for ${field}:`, e);
         }
-      }
-    });
+      });
+    }
 
     const isNewProcess = !initialData || initialData._isPrefilledNew;
     const hasApurador = formData.apurador && formData.apuradorSaram;
@@ -2731,9 +2783,10 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
     // Simulate API delay
     setTimeout(() => {
       onSave?.({ ...formData, history });
+      const userEmail = (user?.email || currentUser?.email || localStorage.getItem('logged_user_email') || 'user').toLowerCase().trim();
       const key = initialData 
-        ? (initialData._isPrefilledNew ? 'new_patd_form_memory' : `edit_patd_form_memory_${initialData.id}`)
-        : 'new_patd_form_memory';
+        ? (initialData._isPrefilledNew ? `new_patd_form_memory_${userEmail}` : `edit_patd_form_memory_${initialData.id}_${userEmail}`)
+        : `new_patd_form_memory_${userEmail}`;
       localStorage.removeItem(key);
       localStorage.removeItem(`${key}_history`);
       setIsSaving(false);
