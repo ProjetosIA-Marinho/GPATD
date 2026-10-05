@@ -786,6 +786,14 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
     docArquivado: false
   });
 
+  const isFays = Boolean(
+    (currentUser?.divisao && normalizeDivision(currentUser.divisao) === 'FAYS') ||
+    (formData.divisao && normalizeDivision(formData.divisao) === 'FAYS')
+  );
+  const omName = isFays ? 'FAZENDA DA AERONÁUTICA DE PIRASSUNUNGA' : 'Academia da Força Aérea';
+  const stampPath = isFays ? '/sinete_fays.png' : '/sinete.png';
+  const fatdPortariaItem = isFays ? 'Portaria nº 255/SERH, de 30 de março de 2026' : 'Portaria nº 853/SIJ, de 27 de abril de 2026';
+
   const printDocument = async (type: string) => {
     if (type === 'delegacao') {
       if (formData.delegacaoDoc) {
@@ -847,7 +855,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                 <body>
                   <div class="page-container">
                     <img class="doc-image" src="${formData.delegacaoDoc.url}" />
-                    <img class="stamp-image" src="${window.location.origin}/sinete.png" />
+                    <img class="stamp-image" src="${window.location.origin}${stampPath}" />
                   </div>
                   <script>
                     window.onload = function() {
@@ -868,7 +876,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
             const response = await fetch(formData.delegacaoDoc.url);
             const pdfBytes = await response.arrayBuffer();
 
-            const stampResponse = await fetch('/sinete.png');
+            const stampResponse = await fetch(stampPath);
             const stampBytes = await stampResponse.arrayBuffer();
 
             const { PDFDocument } = await import('pdf-lib');
@@ -959,7 +967,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                   <img src="${window.location.origin}/brasao.png" width="75" height="75" style="margin-bottom: 12px; display: block; margin-left: auto; margin-right: auto;" />
                   <p style="font-size: 16px; font-weight: bold; color: #000000; margin: 0 0 4px 0; text-transform: uppercase;">Ministério da Defesa</p>
                   <p style="font-size: 16px; font-weight: bold; color: #000000; margin: 0 0 4px 0; text-transform: uppercase;">Comando da Aeronáutica</p>
-                  <p class="text-black underline" style="font-size: 16px; font-weight: bold; margin: 0; text-transform: uppercase;">Academia da Força Aérea</p>
+                  <p class="text-black underline" style="font-size: 16px; font-weight: bold; margin: 0; text-transform: uppercase;">${omName}</p>
                 </div>
 
                 <!-- Process Title -->
@@ -990,7 +998,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
         case 'despacho':
           return `
             <div class="sheet despacho font-serif" style="padding: 20mm 15mm 20mm 20mm !important; font-family: 'Times New Roman', Times, serif; position: relative;">
-              <img src="${window.location.origin}/sinete.png" style="position: absolute; top: 10mm; right: 5mm; width: 65mm; height: 46mm;" />
+              <img src="${window.location.origin}${stampPath}" style="position: absolute; top: 10mm; right: 5mm; width: 65mm; height: 46mm;" />
               <!-- Header inside the printable sheet -->
               <div class="text-center font-bold" style="margin-bottom: 2mm;">
                 <p style="font-size: 14px; font-weight: bold; color: #000000; margin: 0 0 6px 0;">Anexo B - Despacho de Abertura e Designação de Apurador</p>
@@ -1005,12 +1013,12 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                 <img src="${window.location.origin}/brasao.png" width="65" height="65" style="margin-bottom: 12px; display: block; margin-left: auto; margin-right: auto;" />
                 <p style="font-size: 14px; font-weight: bold; color: #000000; margin: 0 0 3px 0; text-transform: uppercase;">Ministério da Defesa</p>
                 <p style="font-size: 14px; font-weight: bold; color: #000000; margin: 0 0 3px 0; text-transform: uppercase;">Comando da Aeronáutica</p>
-                <p class="text-black underline" style="font-size: 14px; font-weight: bold; margin: 0; text-transform: uppercase;">Academia da Força Aérea</p>
+                <p class="text-black underline" style="font-size: 14px; font-weight: bold; margin: 0; text-transform: uppercase;">${omName}</p>
               </div>
 
               <div class="body-text text-justify" style="font-size: 13px; line-height: 1.6;">
                 <p style="text-indent: 3rem; margin-top: 15px; text-align: justify;">
-                  Considerando o disposto no art. 1º da Portaria nº 853/SIJ, de 27 de abril de 2026, publicada no Boletim Interno Ostensivo n º 75, de 29 de abril de 2026, que designa oficiais para apurar transgressão disciplinar e autoridades para aplicar punição disciplinar, no âmbito desta Organização Militar, c/c o item 3.1 da ICA 111-6, aprovada pela Portaria GABAER nº 120/GC3 de 9 de julho de 2021, determino a abertura de Processo de Apuração de Transgressão Disciplinar (PATD), com a finalidade de apurar os fatos relatados no Ofício nº <strong>${formData.oficioNumero || '_______'}</strong>, (Prot. COMAER nº <strong>${formData.protComaer || '_______'}</strong>), de <strong>${formatDateStr(formData.dataOficio)}</strong>.
+                  ${isFays ? `Considerando o disposto no art. 1º da Portaria nº 255/SERH, de 30 de março de 2026, publicada no Boletim Interno Ostensivo n º 59, de 1º de abril de 2026, que designa oficiais da FAZENDA DA AERONÁUTICA DE PIRASSUNUNGA (FAYS) para apurar transgressão disciplinar, no âmbito desta Organização Militar, c/c o item 3.1 da ICA 111-6, aprovada pela Portaria GABAER nº 120/GC3 de 9 de julho de 2021, determino a abertura de Processo de Apuração de Transgressão Disciplinar (PATD), com a finalidade de apurar os fatos relatados no Ofício nº <strong>${formData.oficioNumero || '_______'}</strong>, (Prot. COMAER nº <strong>${formData.protComaer || '_______'}</strong>), de <strong>${formatDateStr(formData.dataOficio)}</strong>.` : `Considerando o disposto no art. 1º da Portaria nº 853/SIJ, de 27 de abril de 2026, publicada no Boletim Interno Ostensivo n º 75, de 29 de abril de 2026, que designa oficiais para apurar transgressão disciplinar e autoridades para aplicar punição disciplinar, no âmbito desta Organização Militar, c/c o item 3.1 da ICA 111-6, aprovada pela Portaria GABAER nº 120/GC3 de 9 de julho de 2021, determino a abertura de Processo de Apuração de Transgressão Disciplinar (PATD), com a finalidade de apurar os fatos relatados no Ofício nº <strong>${formData.oficioNumero || '_______'}</strong>, (Prot. COMAER nº <strong>${formData.protComaer || '_______'}</strong>), de <strong>${formatDateStr(formData.dataOficio)}</strong>.`}
                 </p>
                 
                 <p style="text-indent: 3rem; margin-top: 15px; text-align: justify;">
@@ -1037,7 +1045,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
           return `
             <!-- Folha 1 -->
             <div class="sheet fatd font-serif" style="padding: 20mm 15mm 20mm 20mm !important; font-family: 'Times New Roman', Times, serif; page-break-after: always; position: relative; box-sizing: border-box;">
-              <img src="${window.location.origin}/sinete.png" style="position: absolute; top: 10mm; right: 5mm; width: 65mm; height: 46mm;" />
+              <img src="${window.location.origin}${stampPath}" style="position: absolute; top: 10mm; right: 5mm; width: 65mm; height: 46mm;" />
               <!-- Header inside the printable sheet -->
               <div class="text-center font-bold" style="margin-bottom: 2mm;">
                 <p style="font-size: 14px; font-weight: bold; color: #000000; margin: 0 0 6px 0;">Anexo D - Formulário de Apuração de Transgressão Disciplinar (FATD)</p>
@@ -1052,7 +1060,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                 <img src="${window.location.origin}/brasao.png" width="65" height="65" style="margin-bottom: 12px; display: block; margin-left: auto; margin-right: auto;" />
                 <p style="font-size: 14px; font-weight: bold; color: #000000; margin: 0 0 3px 0; text-transform: uppercase;">Ministério da Defesa</p>
                 <p style="font-size: 14px; font-weight: bold; color: #000000; margin: 0 0 3px 0; text-transform: uppercase;">Comando da Aeronáutica</p>
-                <p class="text-black underline" style="font-size: 14px; font-weight: bold; margin: 0; text-transform: uppercase;">Academia da Força Aérea</p>
+                <p class="text-black underline" style="font-size: 14px; font-weight: bold; margin: 0; text-transform: uppercase;">${omName}</p>
               </div>
 
               <div class="title text-center font-bold uppercase" style="margin-top: 15px; margin-bottom: 15px;">
@@ -1109,7 +1117,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
 
             <!-- Folha 2 -->
             <div class="sheet fatd font-serif" style="padding: 20mm 15mm 20mm 20mm !important; font-family: 'Times New Roman', Times, serif; position: relative; box-sizing: border-box;">
-              <img src="${window.location.origin}/sinete.png" style="position: absolute; top: 10mm; right: 5mm; width: 65mm; height: 46mm;" />
+              <img src="${window.location.origin}${stampPath}" style="position: absolute; top: 10mm; right: 5mm; width: 65mm; height: 46mm;" />
               <!-- Header inside the printable sheet -->
               <div style="font-size: 13px; font-weight: bold; margin-bottom: 15mm; color: #000000;">
                 FATD Nº <span class="text-black">${formData.patdNumber || '___/___/_____'}</span> - fls. 2/2
@@ -1136,7 +1144,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
 
                 <ul style="list-style-type: none; padding-left: 3rem; margin: 15px 0; line-height: 1.6;">
                   <li style="margin-bottom: 4px;">• Capa;</li>
-                  <li style="margin-bottom: 4px;">• Portaria nº 853/SIJ, de 27 de abril de 2026;</li>
+                  <li style="margin-bottom: 4px;">• ${fatdPortariaItem};</li>
                   <li style="margin-bottom: 4px;">• Despacho de Abertura do PATD;</li>
                   <li style="margin-bottom: 4px;">• Ofício nº <strong>${formData.oficioNumero || '_______'}</strong> (Protocolo COMAER nº <strong>${formData.protComaer || '_______'}</strong>), de <strong>${formatDateStr(formData.dataOficio)}</strong>;</li>
                   <li style="margin-bottom: 4px;">• Formulário de Apuração de Transgressão Disciplinar (FATD) - fls. 1/2;</li>
@@ -1475,7 +1483,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
             <img src="${window.location.origin}/brasao.png" width="75" height="75" style="margin-bottom: 12px; display: block; margin-left: auto; margin-right: auto;" />
             <p style="font-size: 16px; font-weight: bold; color: #000000; margin: 0 0 4px 0; text-transform: uppercase;">Ministério da Defesa</p>
             <p style="font-size: 16px; font-weight: bold; color: #000000; margin: 0 0 4px 0; text-transform: uppercase;">Comando da Aeronáutica</p>
-            <p class="text-black underline" style="font-size: 16px; font-weight: bold; margin: 0; text-transform: uppercase;">Academia da Força Aérea</p>
+            <p class="text-black underline" style="font-size: 16px; font-weight: bold; margin: 0; text-transform: uppercase;">${omName}</p>
           </div>
 
           <!-- Process Title -->
@@ -1506,7 +1514,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
 
     const despachoHTML = `
       <div class="sheet despacho font-serif" style="padding: 20mm 15mm 20mm 20mm !important; font-family: 'Times New Roman', Times, serif; position: relative;">
-        <img src="${window.location.origin}/sinete.png" style="position: absolute; top: 10mm; right: 5mm; width: 65mm; height: 46mm;" />
+        <img src="${window.location.origin}${stampPath}" style="position: absolute; top: 10mm; right: 5mm; width: 65mm; height: 46mm;" />
         <!-- Header inside the printable sheet -->
         <div class="text-center font-bold" style="margin-bottom: 2mm;">
           <p style="font-size: 14px; font-weight: bold; color: #000000; margin: 0 0 6px 0;">Anexo B - Despacho de Abertura e Designação de Apurador</p>
@@ -1521,12 +1529,12 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
           <img src="${window.location.origin}/brasao.png" width="65" height="65" style="margin-bottom: 12px; display: block; margin-left: auto; margin-right: auto;" />
           <p style="font-size: 14px; font-weight: bold; color: #000000; margin: 0 0 3px 0; text-transform: uppercase;">Ministério da Defesa</p>
           <p style="font-size: 14px; font-weight: bold; color: #000000; margin: 0 0 3px 0; text-transform: uppercase;">Comando da Aeronáutica</p>
-          <p class="text-black underline" style="font-size: 14px; font-weight: bold; margin: 0; text-transform: uppercase;">Academia da Força Aérea</p>
+          <p class="text-black underline" style="font-size: 14px; font-weight: bold; margin: 0; text-transform: uppercase;">${omName}</p>
         </div>
 
         <div class="body-text text-justify" style="font-size: 13px; line-height: 1.6;">
           <p style="text-indent: 3rem; margin-top: 15px; text-align: justify;">
-            Considerando o disposto no art. 1º da Portaria nº 853/SIJ, de 27 de abril de 2026, publicada no Boletim Interno Ostensivo n º 75, de 29 de abril de 2026, que designa oficiais para apurar transgressão disciplinar e autoridades para aplicar punição disciplinar, no âmbito desta Organização Militar, c/c o item 3.1 da ICA 111-6, aprovada pela Portaria GABAER nº 120/GC3 de 9 de julho de 2021, determino a abertura de Processo de Apuração de Transgressão Disciplinar (PATD), com a finalidade de apurar os fatos relatados no Ofício nº <strong>${formData.oficioNumero || '_______'}</strong>, (Prot. COMAER nº <strong>${formData.protComaer || '_______'}</strong>), de <strong>${formatDateStr(formData.dataOficio)}</strong>.
+            ${isFays ? `Considerando o disposto no art. 1º da Portaria nº 255/SERH, de 30 de março de 2026, publicada no Boletim Interno Ostensivo n º 59, de 1º de abril de 2026, que designa oficiais da FAZENDA DA AERONÁUTICA DE PIRASSUNUNGA (FAYS) para apurar transgressão disciplinar, no âmbito desta Organização Militar, c/c o item 3.1 da ICA 111-6, aprovada pela Portaria GABAER nº 120/GC3 de 9 de julho de 2021, determino a abertura de Processo de Apuração de Transgressão Disciplinar (PATD), com a finalidade de apurar os fatos relatados no Ofício nº <strong>${formData.oficioNumero || '_______'}</strong>, (Prot. COMAER nº <strong>${formData.protComaer || '_______'}</strong>), de <strong>${formatDateStr(formData.dataOficio)}</strong>.` : `Considerando o disposto no art. 1º da Portaria nº 853/SIJ, de 27 de abril de 2026, publicada no Boletim Interno Ostensivo n º 75, de 29 de abril de 2026, que designa oficiais para apurar transgressão disciplinar e autoridades para aplicar punição disciplinar, no âmbito desta Organização Militar, c/c o item 3.1 da ICA 111-6, aprovada pela Portaria GABAER nº 120/GC3 de 9 de julho de 2021, determino a abertura de Processo de Apuração de Transgressão Disciplinar (PATD), com a finalidade de apurar os fatos relatados no Ofício nº <strong>${formData.oficioNumero || '_______'}</strong>, (Prot. COMAER nº <strong>${formData.protComaer || '_______'}</strong>), de <strong>${formatDateStr(formData.dataOficio)}</strong>.`}
           </p>
           
           <p style="text-indent: 3rem; margin-top: 15px; text-align: justify;">
@@ -1553,7 +1561,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
     const fatdHTML = `
       <!-- Folha 1 -->
       <div class="sheet fatd font-serif" style="padding: 20mm 15mm 20mm 20mm !important; font-family: 'Times New Roman', Times, serif; page-break-after: always; position: relative; box-sizing: border-box;">
-        <img src="${window.location.origin}/sinete.png" style="position: absolute; top: 10mm; right: 5mm; width: 65mm; height: 46mm;" />
+        <img src="${window.location.origin}${stampPath}" style="position: absolute; top: 10mm; right: 5mm; width: 65mm; height: 46mm;" />
         <!-- Header inside the printable sheet -->
         <div class="text-center font-bold" style="margin-bottom: 2mm;">
           <p style="font-size: 14px; font-weight: bold; color: #000000; margin: 0 0 6px 0;">Anexo D - Formulário de Apuração de Transgressão Disciplinar (FATD)</p>
@@ -1568,7 +1576,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
           <img src="${window.location.origin}/brasao.png" width="65" height="65" style="margin-bottom: 12px; display: block; margin-left: auto; margin-right: auto;" />
           <p style="font-size: 14px; font-weight: bold; color: #000000; margin: 0 0 3px 0; text-transform: uppercase;">Ministério da Defesa</p>
           <p style="font-size: 14px; font-weight: bold; color: #000000; margin: 0 0 3px 0; text-transform: uppercase;">Comando da Aeronáutica</p>
-          <p class="text-black underline" style="font-size: 14px; font-weight: bold; margin: 0; text-transform: uppercase;">Academia da Força Aérea</p>
+          <p class="text-black underline" style="font-size: 14px; font-weight: bold; margin: 0; text-transform: uppercase;">${omName}</p>
         </div>
 
         <div class="title text-center font-bold uppercase" style="margin-top: 15px; margin-bottom: 15px;">
@@ -1625,7 +1633,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
 
       <!-- Folha 2 -->
       <div class="sheet fatd font-serif" style="padding: 20mm 15mm 20mm 20mm !important; font-family: 'Times New Roman', Times, serif; position: relative; box-sizing: border-box;">
-        <img src="${window.location.origin}/sinete.png" style="position: absolute; top: 10mm; right: 5mm; width: 65mm; height: 46mm;" />
+        <img src="${window.location.origin}${stampPath}" style="position: absolute; top: 10mm; right: 5mm; width: 65mm; height: 46mm;" />
         <!-- Header inside the printable sheet -->
         <div style="font-size: 13px; font-weight: bold; margin-bottom: 15mm; color: #000000;">
           FATD Nº <span class="text-black">${formData.patdNumber || '___/___/_____'}</span> - fls. 2/2
@@ -1652,7 +1660,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
 
           <ul style="list-style-type: none; padding-left: 3rem; margin: 15px 0; line-height: 1.6;">
             <li style="margin-bottom: 4px;">• Capa;</li>
-            <li style="margin-bottom: 4px;">• Portaria nº 853/SIJ, de 27 de abril de 2026;</li>
+            <li style="margin-bottom: 4px;">• ${fatdPortariaItem};</li>
             <li style="margin-bottom: 4px;">• Despacho de Abertura do PATD;</li>
             <li style="margin-bottom: 4px;">• Ofício nº <strong>${formData.oficioNumero || '_______'}</strong> (Protocolo COMAER nº <strong>${formData.protComaer || '_______'}</strong>), de <strong>${formatDateStr(formData.dataOficio)}</strong>;</li>
             <li style="margin-bottom: 4px;">• Formulário de Apuração de Transgressão Disciplinar (FATD) - fls. 1/2;</li>
@@ -3715,7 +3723,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                                 <img src="/brasao.png" width="60" height="60" style={{ marginBottom: '8px', display: 'block', marginLeft: 'auto', marginRight: 'auto' }} />
                                 <p style={{ fontSize: '14px', fontWeight: 'bold', margin: '0 0 3px 0', textTransform: 'uppercase', color: '#000000' }}>Ministério da Defesa</p>
                                 <p style={{ fontSize: '14px', fontWeight: 'bold', margin: '0 0 3px 0', textTransform: 'uppercase', color: '#000000' }}>Comando da Aeronáutica</p>
-                                <p style={{ fontSize: '14px', fontWeight: 'bold', margin: 0, textTransform: 'uppercase', textDecoration: 'underline', color: '#000000' }}>Academia da Força Aérea</p>
+                                <p style={{ fontSize: '14px', fontWeight: 'bold', margin: 0, textTransform: 'uppercase', textDecoration: 'underline', color: '#000000' }}>{omName}</p>
                               </div>
 
                               {/* Process Title */}
@@ -3754,7 +3762,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                                   <FileUp className="text-indigo-600 dark:text-indigo-400" size={18} />
                                   Portaria de Delegação de Competência
                                 </h4>
-                                <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">
+                                <p className="text-[9px] font-black text-slate-400 dark:text-slate-550 uppercase tracking-widest mt-1">
                                   Documento oficial de atribuição legal para apuração
                                 </p>
                               </div>
@@ -3771,7 +3779,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                                         <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate max-w-[200px] md:max-w-[300px]">
                                           {formData.delegacaoDoc.name}
                                         </p>
-                                        <p className="text-[10px] text-slate-400 dark:text-slate-500">
+                                        <p className="text-[10px] text-slate-400 dark:text-slate-550">
                                           Enviado em {formData.delegacaoDoc.uploadedAt}
                                         </p>
                                       </div>
@@ -3812,7 +3820,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                                           className="max-h-[380px] object-contain rounded-lg shadow-md border border-slate-200 dark:border-slate-800"
                                         />
                                         <img
-                                          src="/sinete.png"
+                                          src={stampPath}
                                           alt="Carimbo de Delegação"
                                           className="absolute top-2 right-2 w-24 h-auto pointer-events-none drop-shadow-md"
                                         />
@@ -3956,7 +3964,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                       case 'despacho':
                         return (
                           <div className="bg-white shadow-2xl rounded-2xl text-slate-800 border border-slate-200 w-full max-w-[650px] aspect-[1/1.41] text-left flex flex-col justify-between overflow-y-auto my-4 relative" style={{ padding: '20mm 15mm 20mm 20mm', fontFamily: "'Times New Roman', Times, serif" }}>
-                            <img src="/sinete.png" style={{ position: 'absolute', top: '10mm', right: '5mm', width: '65mm', height: '46mm' }} />
+                            <img src={stampPath} style={{ position: 'absolute', top: '10mm', right: '5mm', width: '65mm', height: '46mm' }} />
                             <div>
                               <div className="text-center font-bold" style={{ marginBottom: '2mm' }}>
                                 <p style={{ fontSize: '11px', fontWeight: 'bold', color: '#000000', margin: '0 0 4px 0' }}>Anexo B - Despacho de Abertura e Designação de Apurador</p>
@@ -3970,13 +3978,19 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                                 <img src="/brasao.png" width="50" height="50" style={{ marginBottom: '8px', display: 'block', marginLeft: 'auto', marginRight: 'auto' }} />
                                 <p style={{ fontSize: '12px', fontWeight: 'bold', color: '#000000', margin: '0 0 2px 0', textTransform: 'uppercase' }}>Ministério da Defesa</p>
                                 <p style={{ fontSize: '12px', fontWeight: 'bold', color: '#000000', margin: '0 0 2px 0', textTransform: 'uppercase' }}>Comando da Aeronáutica</p>
-                                <p style={{ fontSize: '12px', fontWeight: 'bold', color: '#000000', margin: 0, textTransform: 'uppercase', textDecoration: 'underline' }}>Academia da Força Aérea</p>
+                                <p style={{ fontSize: '12px', fontWeight: 'bold', color: '#000000', margin: 0, textTransform: 'uppercase', textDecoration: 'underline' }}>{omName}</p>
                               </div>
 
                               <div className="body-text text-justify" style={{ fontSize: '12px', lineHeight: '1.5', color: '#000000' }}>
-                                <p style={{ textIndent: '2.5rem', marginTop: '10px', textAlign: 'justify' }}>
-                                  Considerando o disposto no art. 1º da Portaria nº 853/SIJ, de 27 de abril de 2026, publicada no Boletim Interno Ostensivo n º 75, de 29 de abril de 2026, que designa oficiais para apurar transgressão disciplinar e autoridades para aplicar punição disciplinar, no âmbito desta Organização Militar, c/c o item 3.1 da ICA 111-6, aprovada pela Portaria GABAER nº 120/GC3 de 9 de julho de 2021, determino a abertura de Processo de Apuração de Transgressão Disciplinar (PATD), com a finalidade de apurar os fatos relatados no Ofício nº <strong>{formData.oficioNumero || '_______'}</strong>, (Prot. COMAER nº <strong>{formData.protComaer || '_______'}</strong>), de <strong>{formatDateStr(formData.dataOficio)}</strong>.
-                                </p>
+                                {isFays ? (
+                                  <p style={{ textIndent: '2.5rem', marginTop: '10px', textAlign: 'justify' }}>
+                                    Considerando o disposto no art. 1º da Portaria nº 255/SERH, de 30 de março de 2026, publicada no Boletim Interno Ostensivo n º 59, de 1º de abril de 2026, que designa oficiais da FAZENDA DA AERONÁUTICA DE PIRASSUNUNGA (FAYS) para apurar transgressão disciplinar, no âmbito desta Organização Militar, c/c o item 3.1 da ICA 111-6, aprovada pela Portaria GABAER nº 120/GC3 de 9 de julho de 2021, determino a abertura de Processo de Apuração de Transgressão Disciplinar (PATD), com a finalidade de apurar os fatos relatados no Ofício nº <strong>{formData.oficioNumero || '_______'}</strong>, (Prot. COMAER nº <strong>{formData.protComaer || '_______'}</strong>), de <strong>{formatDateStr(formData.dataOficio)}</strong>.
+                                  </p>
+                                ) : (
+                                  <p style={{ textIndent: '2.5rem', marginTop: '10px', textAlign: 'justify' }}>
+                                    Considerando o disposto no art. 1º da Portaria nº 853/SIJ, de 27 de abril de 2026, publicada no Boletim Interno Ostensivo n º 75, de 29 de abril de 2026, que designa oficiais para apurar transgressão disciplinar e autoridades para aplicar punição disciplinar, no âmbito desta Organização Militar, c/c o item 3.1 da ICA 111-6, aprovada pela Portaria GABAER nº 120/GC3 de 9 de julho de 2021, determino a abertura de Processo de Apuração de Transgressão Disciplinar (PATD), com a finalidade de apurar os fatos relatados no Ofício nº <strong>{formData.oficioNumero || '_______'}</strong>, (Prot. COMAER nº <strong>{formData.protComaer || '_______'}</strong>), de <strong>{formatDateStr(formData.dataOficio)}</strong>.
+                                  </p>
+                                )}
                                 
                                 <p style={{ textIndent: '2.5rem', marginTop: '10px', textAlign: 'justify' }}>
                                   Designo o <strong>{formData.apuradorPosto || ''} {formData.apuradorQuadro || ''}{formData.apuradorEspecialidade ? ` ${formData.apuradorEspecialidade}` : ''} {formData.apurador || '___________________________'}</strong> para, na condição de Oficial Apurador, efetuar a apuração da suposta transgressão disciplinar e propor solução à autoridade competente, com estrita observância dos procedimentos previstos na ICA 111-6, aprovada pela Portaria GABAER nº 120/GC3 de 9 de julho de 2021, e no Decreto nº 76.322, de 22 de setembro de 1975 (RDAER); sem prejuízo das demais funções.
@@ -4004,7 +4018,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                           <div className="flex flex-col gap-8 w-full max-w-[650px] my-4">
                             {/* Folha 1 */}
                             <div className="bg-white shadow-2xl rounded-2xl text-slate-800 border border-slate-200 aspect-[1/1.41] text-left flex flex-col justify-between relative" style={{ padding: '20mm 15mm 20mm 20mm', fontFamily: "'Times New Roman', Times, serif", boxSizing: 'border-box' }}>
-                              <img src="/sinete.png" style={{ position: 'absolute', top: '10mm', right: '5mm', width: '65mm', height: '46mm' }} />
+                              <img src={stampPath} style={{ position: 'absolute', top: '10mm', right: '5mm', width: '65mm', height: '46mm' }} />
                               <div>
                                 <div className="text-center font-bold" style={{ marginBottom: '2mm' }}>
                                   <p style={{ fontSize: '11px', fontWeight: 'bold', color: '#000000', margin: '0 0 4px 0' }}>Anexo D - Formulário de Apuração de Transgressão Disciplinar (FATD)</p>
@@ -4018,7 +4032,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                                   <img src="/brasao.png" width="50" height="50" style={{ marginBottom: '8px', display: 'block', marginLeft: 'auto', marginRight: 'auto' }} />
                                   <p style={{ fontSize: '12px', fontWeight: 'bold', color: '#000000', margin: '0 0 2px 0', textTransform: 'uppercase' }}>Ministério da Defesa</p>
                                   <p style={{ fontSize: '12px', fontWeight: 'bold', color: '#000000', margin: '0 0 2px 0', textTransform: 'uppercase' }}>Comando da Aeronáutica</p>
-                                  <p style={{ fontSize: '12px', fontWeight: 'bold', color: '#000000', margin: 0, textTransform: 'uppercase', textDecoration: 'underline' }}>Academia da Força Aérea</p>
+                                  <p style={{ fontSize: '12px', fontWeight: 'bold', color: '#000000', margin: 0, textTransform: 'uppercase', textDecoration: 'underline' }}>{omName}</p>
                                 </div>
 
                                 <div className="text-center font-bold uppercase" style={{ margin: '15px 0', fontSize: '12px' }}>
@@ -4075,7 +4089,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
 
                             {/* Folha 2 */}
                             <div className="bg-white shadow-2xl rounded-2xl text-slate-800 border border-slate-200 aspect-[1/1.41] text-left flex flex-col justify-between relative" style={{ padding: '20mm 15mm 20mm 20mm', fontFamily: "'Times New Roman', Times, serif", boxSizing: 'border-box' }}>
-                              <img src="/sinete.png" style={{ position: 'absolute', top: '10mm', right: '5mm', width: '65mm', height: '46mm' }} />
+                              <img src={stampPath} style={{ position: 'absolute', top: '10mm', right: '5mm', width: '65mm', height: '46mm' }} />
                               <div>
                                 <div style={{ fontSize: '11px', fontWeight: 'bold', marginBottom: '10mm', color: '#000000' }}>
                                   FATD Nº <span style={{ color: '#000000' }}>{formData.patdNumber || '___/___/_____'}</span> - fls. 2/2
@@ -4100,7 +4114,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
 
                                   <ul style={{ listStyleType: 'none', paddingLeft: '2.5rem', margin: '10px 0', lineHeight: '1.5', color: '#000000' }}>
                                     <li style={{ marginBottom: '3px' }}>• Capa;</li>
-                                    <li style={{ marginBottom: '3px' }}>• Portaria nº 853/SIJ, de 27 de abril de 2026;</li>
+                                    <li style={{ marginBottom: '3px' }}>• {fatdPortariaItem};</li>
                                     <li style={{ marginBottom: '3px' }}>• Despacho de Abertura do PATD;</li>
                                     <li style={{ marginBottom: '3px' }}>• Ofício nº <strong>{formData.oficioNumero || '_______'}</strong> (Protocolo COMAER nº <strong>{formData.protComaer || '_______'}</strong>), de <strong>{formatDateStr(formData.dataOficio)}</strong>;</li>
                                     <li style={{ marginBottom: '3px' }}>• Formulário de Apuração de Transgressão Disciplinar (FATD) - fls. 1/2;</li>
