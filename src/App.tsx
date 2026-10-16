@@ -325,6 +325,7 @@ export default function App() {
     };
   }, [session, fetchData]);
   const [editingProcess, setEditingProcess] = useState<any>(null);
+  const [newPatdKey, setNewPatdKey] = useState<number>(0);
   const [prefilledNewUser, setPrefilledNewUser] = useState<any>(null);
   const [processFilter, setProcessFilter] = useState<string>('');
 
@@ -403,6 +404,12 @@ export default function App() {
   const handleNewPATD = () => {
     if (currentUser.role === 'Visualizador') return;
     setEditingProcess(null);
+    setNewPatdKey(prev => prev + 1);
+    const userEmail = (currentUser?.email || localStorage.getItem('logged_user_email') || 'user').toLowerCase().trim();
+    try {
+      localStorage.removeItem(`new_patd_form_memory_${userEmail}`);
+      localStorage.removeItem(`new_patd_form_memory_${userEmail}_history`);
+    } catch (e) {}
     setActiveTab('novo-patd');
   };
 
@@ -575,6 +582,15 @@ export default function App() {
   };
 
   const handleTabChange = (tab: string, filter?: string) => {
+    if (tab === 'novo-patd') {
+      setEditingProcess(null);
+      setNewPatdKey(prev => prev + 1);
+      const userEmail = (currentUser?.email || localStorage.getItem('logged_user_email') || 'user').toLowerCase().trim();
+      try {
+        localStorage.removeItem(`new_patd_form_memory_${userEmail}`);
+        localStorage.removeItem(`new_patd_form_memory_${userEmail}_history`);
+      } catch (e) {}
+    }
     setActiveTab(tab);
     if (filter) {
       setProcessFilter(filter);
@@ -600,7 +616,16 @@ export default function App() {
       case 'tasks':
         return <Tasks />;
       case 'novo-patd':
-        return <NewPATD key={editingProcess?.id || (editingProcess ? 'editing' : 'new')} initialData={editingProcess} onSave={handleSaveProcess} divisions={divisions} currentUser={currentUser} processes={processes} />;
+        return (
+          <NewPATD 
+            key={editingProcess?._isPrefilledNew ? `prefilled_${editingProcess.saram || Date.now()}` : (editingProcess?.id ? `edit_${editingProcess.id}` : `new_${newPatdKey}`)} 
+            initialData={editingProcess} 
+            onSave={handleSaveProcess} 
+            divisions={divisions} 
+            currentUser={currentUser} 
+            processes={processes} 
+          />
+        );
       case 'efetivo':
         return <Efetivo currentUser={currentUser} onNewPATDFromEfetivo={(military) => {
           setEditingProcess({
