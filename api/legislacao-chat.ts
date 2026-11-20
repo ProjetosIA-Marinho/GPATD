@@ -4,7 +4,7 @@
  * Fluxo:
  *  1. Valida o token do usuário (Supabase).
  *  2. Busca, COM O TOKEN DO PRÓPRIO USUÁRIO (respeita RLS), os documentos
- *     das pastas de categoria "Legislação".
+ *     da pasta "Legislações".
  *  3. Baixa cada arquivo do Storage e envia ao Gemini pela Files API
  *     (com cache em memória por ~47h, validade dos arquivos no Gemini).
  *  4. Pergunta ao modelo com instruções para responder SOMENTE com base
@@ -199,12 +199,12 @@ export default async function handler(req: any, res: any) {
 
     // 3. Documentos de legislação (o servidor decide; o cliente só filtra)
     const { data: folders, error: fErr } = await supabase
-      .from('folders').select('id, name, category').ilike('category', 'legisla%');
+      .from('folders').select('id, name, category').ilike('name', 'legisla%'); // somente a pasta "Legislações"
     if (fErr) throw fErr;
     const folderIds = (folders || []).map((f: any) => f.id);
     if (folderIds.length === 0) {
       return res.status(200).json({
-        text: 'Ainda não há pastas da categoria **Legislação** cadastradas. Peça a um administrador para cadastrar as normas em **Documentos › Legislação**.',
+        text: 'A pasta **Legislações** não foi encontrada. Peça a um administrador para criá-la em **Documentos** e cadastrar as normas nela.',
         usedSources: [], skipped: [],
       });
     }

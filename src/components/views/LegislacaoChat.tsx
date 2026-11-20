@@ -240,7 +240,7 @@ export default function LegislacaoChat({ currentUser }: { currentUser: any }) {
             <div className="p-4 text-center">
               <AlertTriangle size={22} className="mx-auto text-amber-500 mb-2" />
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Nenhuma legislação cadastrada. Cadastre as normas em <strong>Documentos</strong>, numa pasta da categoria <strong>Legislação</strong>.
+                Nenhuma norma encontrada. Cadastre as normas em <strong>Documentos</strong>, na pasta <strong>Legislações</strong>.
               </p>
             </div>
           ) : (
@@ -282,7 +282,7 @@ export default function LegislacaoChat({ currentUser }: { currentUser: any }) {
           )}
         </div>
         <p className="px-5 py-3 text-[10px] text-slate-400 border-t border-slate-100 dark:border-slate-800">
-          As fontes vêm de <strong>Documentos › Legislação</strong>. O assistente responde apenas com base nas fontes marcadas.
+          As fontes vêm da pasta <strong>Documentos › Legislações</strong>. O assistente responde apenas com base nas fontes marcadas.
         </p>
       </aside>
 

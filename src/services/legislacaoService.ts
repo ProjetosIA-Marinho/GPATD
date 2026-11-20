@@ -16,12 +16,12 @@ export interface LegisSource {
   folderName: string;
 }
 
-/** Lista os documentos das pastas de categoria "Legislação". */
+/** Lista os documentos da pasta "Legislações" (únicas fontes do Chat GPATD). */
 export async function listLegislationSources(): Promise<LegisSource[]> {
   const { data: folders, error: fErr } = await supabase
     .from('folders')
     .select('id, name, category')
-    .ilike('category', 'legisla%');
+    .ilike('name', 'legisla%'); // somente a pasta "Legislações"
   if (fErr) throw fErr;
   if (!folders || folders.length === 0) return [];
 
