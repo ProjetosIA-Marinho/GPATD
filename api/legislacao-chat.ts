@@ -129,8 +129,14 @@ export default async function handler(req: any, res: any) {
     const supabaseUrl = process.env.VITE_SUPABASE_URL;
     const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
     const apiKey = process.env.GEMINI_API_KEY;
-    if (!supabaseUrl || !supabaseAnonKey || !apiKey) {
-      return res.status(500).json({ error: 'Serviço indisponível (configuração ausente).' });
+    const missing = [
+      !supabaseUrl && 'VITE_SUPABASE_URL',
+      !supabaseAnonKey && 'VITE_SUPABASE_ANON_KEY',
+      !apiKey && 'GEMINI_API_KEY',
+    ].filter(Boolean);
+    if (missing.length) {
+      console.error('Chat GPATD - variáveis ausentes:', missing.join(', '));
+      return res.status(500).json({ error: `Serviço indisponível: configure a variável de ambiente ${missing.join(', ')} no servidor.` });
     }
 
     // Cliente que age em nome do usuário: RLS do Supabase continua valendo.
