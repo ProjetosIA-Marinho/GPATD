@@ -28,6 +28,8 @@ const MAX_MESSAGE_CHARS = 4000;
 const MAX_HISTORY_ITEMS = 20;
 const MAX_SOURCES = 40;
 const MAX_FILE_BYTES = 50 * 1024 * 1024;
+// Orçamento de tempo da função (vercel.json maxDuration = 120s; folga para responder).
+const TIME_BUDGET_MS = 110 * 1000;
 const GEMINI_FILE_TTL_MS = 47 * 60 * 60 * 1000; // Files API mantém por 48h
 
 const MIME_BY_EXT: Record<string, string> = {
@@ -109,6 +111,35 @@ async function ensureGeminiFile(ai: GoogleGenAI, supabase: any, doc: any): Promi
   return entry;
 }
 
+function getStatus(err: any): number | undefined {
+  const s = err?.status ?? err?.code ?? err?.error?.code;
+  if (typeof s === 'number') return s;
+  const m = String(err?.message || '').match(/\b(400|401|403|404|413|429|500|503)\b/);
+  return m ? Number(m[1]) : undefined;
+}
+
+/** Mensagem útil ao usuário, sem expor dados sensíveis. */
+function describeError(err: any): string {
+  const status = getStatus(err);
+  const msg = String(err?.message || '');
+  if (status === 429 || /quota|rate limit|resource.?exhausted/i.test(msg)) {
+    return 'Limite de uso da chave do Gemini atingido (plano gratuito tem limite de tokens por minuto). Selecione menos fontes ou aguarde 1 minuto. Para uso contínuo, ative o faturamento no Google AI Studio.';
+  }
+  if (status === 503 || /high demand|overloaded|unavailable/i.test(msg)) {
+    return 'Os servidores do Gemini estão sobrecarregados neste momento. Aguarde alguns instantes e tente novamente.';
+  }
+  if (/api key|API_KEY_INVALID|permission denied|unauthenticated/i.test(msg) || status === 401) {
+    return 'A chave GEMINI_API_KEY foi recusada pelo Google. Confira se o valor cadastrado está correto e faça um novo deploy.';
+  }
+  if (/token count|too large|exceeds|context/i.test(msg) || status === 413) {
+    return 'As fontes selecionadas são grandes demais para uma única consulta. Selecione menos documentos.';
+  }
+  if (/storage|download/i.test(msg)) {
+    return 'Não foi possível baixar um dos documentos do Storage. Verifique as permissões do bucket.';
+  }
+  return `Falha ao consultar a legislação${status ? ` (código ${status})` : ''}: ${msg.slice(0, 200) || 'erro desconhecido'}`;
+}
+
 export default async function handler(req: any, res: any) {
   const origin = req.headers.origin;
   if (origin && ALLOWED_ORIGINS.includes(origin)) {
@@ -120,6 +151,8 @@ export default async function handler(req: any, res: any) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  const startedAt = Date.now();
+  const remaining = () => TIME_BUDGET_MS - (Date.now() - startedAt);
 
   try {
     // 1. Autenticação
@@ -231,22 +264,56 @@ export default async function handler(req: any, res: any) {
       { role: 'user', parts: [{ text: message.trim() }] },
     ];
 
-    const model = process.env.GEMINI_LEGIS_MODEL || 'gemini-flash-latest';
-    const generate = (fileParts: any[]) => ai.models.generateContent({
+    // Tenta o modelo configurado e, se não existir/estiver indisponível, os alternativos.
+    const models = Array.from(new Set([
+      process.env.GEMINI_LEGIS_MODEL,
+      'gemini-flash-latest',
+      'gemini-2.5-flash',
+      'gemini-flash-lite-latest',
+    ].filter(Boolean) as string[]));
+
+    const generate = (model: string, fileParts: any[]) => ai.models.generateContent({
       model,
       contents: buildContents(fileParts),
-      config: { systemInstruction: SYSTEM_INSTRUCTION, temperature: 0.2 },
+      config: {
+        systemInstruction: SYSTEM_INSTRUCTION,
+        temperature: 0.2,
+        // Interrompe antes do limite da Vercel para devolver uma mensagem clara.
+        abortSignal: AbortSignal.timeout(Math.max(remaining() - 3000, 5000)),
+      },
     });
 
-    let result;
-    try {
-      result = await generate(parts);
-    } catch (err: any) {
-      // Arquivo pode ter expirado/sido removido no Gemini: limpa cache e tenta uma vez.
-      console.warn('Legislação - nova tentativa após erro:', err?.message);
-      fileCache.clear();
-      ({ parts, used } = await prepare());
-      result = await generate(parts);
+    let result: any;
+    let lastErr: any;
+    let refreshedFiles = false;
+    for (let i = 0; i < models.length && !result; i++) {
+      if (remaining() < 15000) break; // sem tempo para outra tentativa
+      try {
+        result = await generate(models[i], parts);
+      } catch (err: any) {
+        lastErr = err;
+        const status = getStatus(err);
+        const msg = String(err?.message || '');
+        console.warn(`Chat GPATD - modelo ${models[i]} falhou (${status}):`, msg.slice(0, 500));
+        if (status === 404 || /not found|not supported/i.test(msg)) continue; // modelo inexistente
+        if (!refreshedFiles && /file|permission/i.test(msg) && (status === 400 || status === 403)) {
+          // Arquivo expirado/removido no Gemini: reenvia e tenta de novo o mesmo modelo.
+          refreshedFiles = true;
+          fileCache.clear();
+          ({ parts, used } = await prepare());
+          i--;
+          continue;
+        }
+        if (err?.name === 'AbortError' || /abort|timed? ?out/i.test(msg)) break; // tempo esgotado
+        if (status === 429 || status === 503 || status === 500) continue; // cota/sobrecarga: tenta o próximo
+        throw err;
+      }
+    }
+    if (!result) {
+      if (!lastErr || remaining() < 15000 || lastErr?.name === 'AbortError') {
+        return res.status(504).json({ error: 'A consulta demorou demais. Selecione menos fontes (2 ou 3 normas) ou tente novamente em instantes.' });
+      }
+      throw lastErr;
     }
 
     return res.status(200).json({
@@ -256,6 +323,6 @@ export default async function handler(req: any, res: any) {
     });
   } catch (error: any) {
     console.error('Chat GPATD Error:', error);
-    return res.status(500).json({ error: 'Falha ao consultar a legislação. Tente novamente.' });
+    return res.status(500).json({ error: describeError(error) });
   }
 }

@@ -53,7 +53,20 @@ export async function askLegislation(message: string, history: LegisMessage[], s
     }),
   });
 
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || 'Falha ao consultar a legislação.');
+  const raw = await response.text();
+  let data: any = {};
+  try { data = JSON.parse(raw); } catch { /* resposta não-JSON (timeout, crash, rota ausente) */ }
+
+  if (!response.ok || !data.text) {
+    if (data.error) throw new Error(data.error);
+    const hints: Record<number, string> = {
+      404: 'rota /api/legislacao-chat não encontrada no servidor (o deploy incluiu a pasta api?)',
+      405: 'o servidor não reconheceu a rota da API (deploy sem o arquivo api/legislacao-chat.ts?)',
+      500: 'a função do servidor falhou ao iniciar',
+      504: 'tempo esgotado: os documentos demoraram demais para ser processados',
+    };
+    const hint = hints[response.status] || raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 150);
+    throw new Error(`Falha ao consultar a legislação (HTTP ${response.status}): ${hint || 'resposta vazia'}`);
+  }
   return data as { text: string; usedSources: LegisMessage['usedSources']; skipped: LegisMessage['skipped'] };
 }

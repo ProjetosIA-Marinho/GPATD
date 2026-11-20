@@ -2,7 +2,7 @@
   "version": 2,
   "cleanUrls": true,
   "functions": {
-    "api/legislacao-chat.ts": { "maxDuration": 60 }
+    "api/legislacao-chat.ts": { "maxDuration": 120 }
   },
   "headers": [
     {
