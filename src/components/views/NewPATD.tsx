@@ -31,6 +31,8 @@ import {
 import { AnimatePresence } from 'motion/react';
 import { Division } from './Divisions';
 import { supabase } from '../../lib/supabase';
+import { getSignedUrl } from '../../lib/storage';
+import SignedImage from '../common/SignedImage';
 import { useAuth } from '../../context/AuthContext';
 import * as XLSX from 'xlsx';
 import { isSameDivision, normalizeDivision } from '../../utils/divisionUtils';
@@ -813,7 +815,8 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
       if (formData.delegacaoDoc) {
         const isPng = formData.delegacaoDoc.name?.toLowerCase().endsWith('.png') || formData.delegacaoDoc.url?.toLowerCase().endsWith('.png');
         const isPdf = formData.delegacaoDoc.name?.toLowerCase().endsWith('.pdf') || formData.delegacaoDoc.url?.toLowerCase().endsWith('.pdf');
-        
+        const signedDelegacaoUrl = await getSignedUrl(formData.delegacaoDoc.url);
+
         if (isPng) {
           const printWindow = window.open('', '_blank');
           if (printWindow) {
@@ -868,7 +871,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                 </head>
                 <body>
                   <div class="page-container">
-                    <img class="doc-image" src="${formData.delegacaoDoc.url}" />
+                    <img class="doc-image" src="${signedDelegacaoUrl}" />
                     <img class="stamp-image" src="${window.location.origin}${stampPath}" />
                   </div>
                   <script>
@@ -887,7 +890,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
           return;
         } else if (isPdf) {
           try {
-            const response = await fetch(formData.delegacaoDoc.url);
+            const response = await fetch(signedDelegacaoUrl);
             const pdfBytes = await response.arrayBuffer();
 
             const stampResponse = await fetch(stampPath);
@@ -932,12 +935,12 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
             window.open(stampedUrl, '_blank');
           } catch (error) {
             console.error('Erro ao inserir carimbo no PDF:', error);
-            window.open(formData.delegacaoDoc.url, '_blank');
+            window.open(signedDelegacaoUrl, '_blank');
           }
           return;
         }
         
-        window.open(formData.delegacaoDoc.url, '_blank');
+        window.open(signedDelegacaoUrl, '_blank');
       } else {
         alert('Nenhuma Portaria de Delegação anexada para imprimir.');
       }
@@ -3072,11 +3075,10 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
           </motion.button>
 
           {formData.documents && formData.documents.length > 0 && (
-            <a 
-              href={formData.documents[0].url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 px-6 py-3 rounded-2xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-500/20 group shrink-0"
+            <button
+              type="button"
+              onClick={async () => window.open(await getSignedUrl(formData.documents[0].url), '_blank')}
+              className="flex items-center gap-3 px-6 py-3 rounded-2xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-500/20 group shrink-0 cursor-pointer"
             >
               <div className="p-2 rounded-lg bg-white/10 text-white group-hover:scale-110 transition-transform">
                 <Download size={18} />
@@ -3085,7 +3087,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                 <p className="leading-none">Baixar PDF</p>
                 <p className="text-[9px] text-indigo-200 lowercase font-medium mt-1">documento anexado</p>
               </div>
-            </a>
+            </button>
           )}
           
           <motion.button 
@@ -3316,7 +3318,7 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                         <div className="flex items-center gap-1.5">
                           <button
                             type="button"
-                            onClick={() => window.open(doc.url, '_blank')}
+                            onClick={async () => window.open(await getSignedUrl(doc.url), '_blank')}
                             className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-500 hover:bg-indigo-500/10 dark:hover:bg-indigo-500/20 transition-all"
                             title="Visualizar Documento"
                           >
@@ -3846,16 +3848,19 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                                     </div>
 
                                     <div className="flex items-center gap-2">
-                                      <a
-                                        href={formData.delegacaoDoc.url}
-                                        download={formData.delegacaoDoc.name}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
+                                      <button
+                                        type="button"
+                                        onClick={async () => {
+                                          const u = await getSignedUrl(formData.delegacaoDoc.url);
+                                          const d = new URL(u);
+                                          d.searchParams.append('download', formData.delegacaoDoc.name || '');
+                                          window.open(d.toString(), '_blank');
+                                        }}
                                         className="h-9 px-3 flex items-center justify-center gap-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all shadow-md shadow-indigo-500/10 cursor-pointer"
                                       >
                                         <Download size={14} />
                                         Download
-                                      </a>
+                                      </button>
 
                                       {canManagePortaria && (
                                         <button
@@ -3874,8 +3879,8 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                                   <div className="border border-slate-100 dark:border-slate-800 rounded-2xl p-4 bg-slate-50/50 dark:bg-slate-900/30 flex items-center justify-center overflow-hidden min-h-[300px] relative">
                                     {isPng ? (
                                       <div className="relative inline-block">
-                                        <img
-                                          src={formData.delegacaoDoc.url}
+                                        <SignedImage
+                                          stored={formData.delegacaoDoc.url}
                                           alt="Portaria de Delegação"
                                           className="max-h-[380px] object-contain rounded-lg shadow-md border border-slate-200 dark:border-slate-800"
                                         />
@@ -3897,14 +3902,16 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                                             ✓ O carimbo (sinete) será inserido automaticamente no canto superior direito de cada página do PDF ao imprimir.
                                           </p>
                                         </div>
-                                        <a
-                                          href={formData.delegacaoDoc.url}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
+                                        <button
+                                          type="button"
+                                          onClick={async () => {
+                                            const u = await getSignedUrl(formData.delegacaoDoc.url);
+                                            window.open(u, '_blank');
+                                          }}
                                           className="px-4 py-2 flex items-center justify-center gap-1.5 rounded-xl bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white text-xs font-bold transition-all shadow-md cursor-pointer mt-2"
                                         >
                                           Abrir em Nova Guia para Visualização
-                                        </a>
+                                        </button>
                                       </div>
                                     )}
                                   </div>
@@ -3963,9 +3970,9 @@ export default function NewPATD({ initialData, onSave, divisions = [], currentUs
                                             <div className="flex items-center gap-2 shrink-0">
                                               <button
                                                 type="button"
-                                                onClick={() => {
+                                                onClick={async () => {
                                                   if (doc.drive_link) {
-                                                    window.open(doc.drive_link, '_blank');
+                                                    window.open(await getSignedUrl(doc.drive_link), '_blank');
                                                   } else {
                                                     alert('Link do documento não encontrado.');
                                                   }

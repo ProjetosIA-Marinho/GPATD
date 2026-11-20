@@ -1,14 +1,25 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
+// Origens autorizadas a chamar esta API (ajuste se mudar de domínio).
+const ALLOWED_ORIGINS = [
+  'https://gpatdafa.com',
+  'https://www.gpatdafa.com',
+  'http://localhost:3000',
+];
+
+// Limites de entrada para conter abuso/custo
+const MAX_MESSAGE_CHARS = 8000;
+const MAX_HISTORY_ITEMS = 20;
+
 export default async function handler(req: any, res: any) {
-  // Enable CORS
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-  );
+  // CORS restrito: só reflete a origem se estiver na lista de permitidas.
+  const origin = req.headers.origin;
+  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  res.setHeader('Vary', 'Origin');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -42,19 +53,29 @@ export default async function handler(req: any, res: any) {
       return res.status(401).json({ error: "Unauthorized: Invalid token" });
     }
 
-    // 2. Chat logic
-    const { message, history } = req.body;
+    // 2. Validação de entrada (não confiar no front-end)
+    const { message, history } = req.body || {};
+
+    if (typeof message !== "string" || message.trim().length === 0) {
+      return res.status(400).json({ error: "Mensagem inválida." });
+    }
+    if (message.length > MAX_MESSAGE_CHARS) {
+      return res.status(413).json({ error: "Mensagem muito longa." });
+    }
+    const safeHistory = Array.isArray(history) ? history.slice(-MAX_HISTORY_ITEMS) : [];
+
+    // 3. Chat logic
     const apiKey = process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
-      return res.status(500).json({ error: "GEMINI_API_KEY is not set" });
+      return res.status(500).json({ error: "Serviço indisponível." });
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const chat = model.startChat({
-      history: history || [],
+      history: safeHistory,
     });
 
     const result = await chat.sendMessage(message);
@@ -63,7 +84,8 @@ export default async function handler(req: any, res: any) {
 
     return res.status(200).json({ text });
   } catch (error: any) {
+    // Loga o detalhe no servidor, mas não expõe ao cliente.
     console.error("AI Error:", error);
-    return res.status(500).json({ error: error.message || "Failed to generate AI response" });
+    return res.status(500).json({ error: "Falha ao gerar resposta." });
   }
 }

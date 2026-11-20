@@ -1,10 +1,29 @@
 {
   "version": 2,
   "cleanUrls": true,
+  "functions": {
+    "api/legislacao-chat.ts": { "maxDuration": 60 }
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
+        { "key": "Content-Security-Policy-Report-Only", "value": "default-src 'self'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https: blob:; worker-src 'self' blob:; child-src 'self' blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' blob:; frame-ancestors 'none'; base-uri 'self'" }
+      ]
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/chat",
       "destination": "/api/chat"
+    },
+    {
+      "source": "/api/legislacao-chat",
+      "destination": "/api/legislacao-chat"
     },
     {
       "source": "/(.*)",

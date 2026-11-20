@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from '../../lib/supabase';
+import { getSignedUrl } from '../../lib/storage';
 import DocumentProcessor from './DocumentProcessor';
 import Pagination, { PageSizeOption } from '../common/Pagination';
 
@@ -150,6 +151,16 @@ export default function Documents({ currentUser }: { currentUser: any }) {
     }
     if (selectedFile.size > 20 * 1024 * 1024) {
       alert('O arquivo excede o limite máximo de 20MB.');
+      return;
+    }
+
+    // Valida o tipo do arquivo (lista branca). Observação: é uma checagem de
+    // front-end; a proteção forte é o bucket privado + políticas de Storage.
+    const ALLOWED_EXT = ['pdf', 'png', 'jpg', 'jpeg', 'webp'];
+    const ALLOWED_MIME = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp'];
+    const ext = (selectedFile.name.split('.').pop() || '').toLowerCase();
+    if (!ALLOWED_EXT.includes(ext) || (selectedFile.type && !ALLOWED_MIME.includes(selectedFile.type))) {
+      alert('Tipo de arquivo não permitido. Envie apenas PDF ou imagem (PNG, JPG, WEBP).');
       return;
     }
 
@@ -304,18 +315,20 @@ export default function Documents({ currentUser }: { currentUser: any }) {
     }
   };
 
-  const handleViewDocument = (doc: Document) => {
+  const handleViewDocument = async (doc: Document) => {
     if (doc.drive_link) {
-      window.open(doc.drive_link, '_blank');
+      const signed = await getSignedUrl(doc.drive_link);
+      window.open(signed, '_blank');
       return;
     }
     alert('Link do documento não encontrado no banco de dados.');
   };
 
-  const handleDownloadDocument = (doc: Document) => {
+  const handleDownloadDocument = async (doc: Document) => {
     if (doc.drive_link) {
       // Adding ?download= to force browser download instead of preview
-      const url = new URL(doc.drive_link);
+      const signed = await getSignedUrl(doc.drive_link);
+      const url = new URL(signed);
       url.searchParams.append('download', '');
       window.open(url.toString(), '_blank');
       return;
@@ -930,10 +943,11 @@ export default function Documents({ currentUser }: { currentUser: any }) {
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Arquivo</label>
                   <label className="relative border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl p-10 flex flex-col items-center justify-center gap-4 hover:border-indigo-400 transition-colors cursor-pointer group bg-slate-50/50 dark:bg-slate-800/30 overflow-hidden block w-full">
-                    <input 
-                      type="file" 
-                      required 
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
+                    <input
+                      type="file"
+                      required
+                      accept=".pdf,.png,.jpg,.jpeg,.webp,application/pdf,image/png,image/jpeg,image/webp"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                       onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
                     />
                     <div className="relative z-0 h-14 w-14 rounded-2xl bg-white dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:scale-110 transition-transform shadow-sm pointer-events-none">

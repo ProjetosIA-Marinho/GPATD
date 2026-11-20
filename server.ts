@@ -3,6 +3,7 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import dotenv from "dotenv";
+import legislacaoChatHandler from "./api/legislacao-chat";
 
 dotenv.config();
 
@@ -39,19 +40,29 @@ async function startServer() {
         return res.status(401).json({ error: "Unauthorized: Invalid token" });
       }
 
-      // 2. Chat logic
-      const { message, history } = req.body;
+      // 2. Validação de entrada (não confiar no front-end)
+      const { message, history } = req.body || {};
+
+      if (typeof message !== "string" || message.trim().length === 0) {
+        return res.status(400).json({ error: "Mensagem inválida." });
+      }
+      if (message.length > 8000) {
+        return res.status(413).json({ error: "Mensagem muito longa." });
+      }
+      const safeHistory = Array.isArray(history) ? history.slice(-20) : [];
+
+      // 3. Chat logic
       const apiKey = process.env.GEMINI_API_KEY;
 
       if (!apiKey) {
-        return res.status(500).json({ error: "GEMINI_API_KEY is not set" });
+        return res.status(500).json({ error: "Serviço indisponível." });
       }
 
       const genAI = new GoogleGenerativeAI(apiKey);
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
       const chat = model.startChat({
-        history: history || [],
+        history: safeHistory,
       });
 
       const result = await chat.sendMessage(message);
@@ -61,9 +72,12 @@ async function startServer() {
       res.json({ text });
     } catch (error: any) {
       console.error("AI Error:", error);
-      res.status(500).json({ error: error.message || "Failed to generate AI response" });
+      res.status(500).json({ error: "Falha ao gerar resposta." });
     }
   });
+
+  // Chat GPATD (assistente normativo baseado nas legislações)
+  app.post("/api/legislacao-chat", (req, res) => legislacaoChatHandler(req, res));
 
   // Vite middleware for development
   if (!IS_PROD) {

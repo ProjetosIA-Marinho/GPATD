@@ -10,6 +10,7 @@ import Users from './components/views/Users';
 import Reports from './components/views/Reports';
 import Documents from './components/views/Documents';
 import Efetivo from './components/views/Efetivo';
+import LegislacaoChat from './components/views/LegislacaoChat';
 import { User as UserType } from './components/views/Users';
 import { Shield, Bell, User, Files } from 'lucide-react';
 import Settings from './components/views/Settings';
@@ -376,7 +377,7 @@ export default function App() {
   // Redirect Apurador to processes if they land on unauthorized activeTab
   useEffect(() => {
     if (currentUser && currentUser.role === 'Apurador') {
-      const allowed = ['processos', 'novo-patd', 'documentos', 'settings'];
+      const allowed = ['processos', 'novo-patd', 'documentos', 'chat-gpatd', 'settings'];
       if (!allowed.includes(activeTab)) {
         setActiveTab('processos');
       }
@@ -656,6 +657,8 @@ export default function App() {
         return <Settings currentUser={currentUser} onProfileUpdate={(updated) => setUsers(prev => prev.map(u => u.id === updated.id ? updated : u))} onBackupRestored={fetchData} />;
       case 'documentos':
         return <Documents currentUser={currentUser} />;
+      case 'chat-gpatd':
+        return <LegislacaoChat currentUser={currentUser} />;
       default:
         return <Dashboard processes={processes} setActiveTab={handleTabChange} onSelectProcess={handleEditProcess} globalSearchTerm={searchTerm} currentUser={currentUser} />;
     }

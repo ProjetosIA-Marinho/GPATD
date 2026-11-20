@@ -321,58 +321,59 @@ export async function restoreSystemData(payload: BackupPayload): Promise<{ succe
     user_settings: 0
   };
 
+  // Autorização: apenas Administrador pode restaurar (verdade do servidor,
+  // não apenas a checagem visual do front-end).
   try {
-    // 1. Profiles
-    if (data.profiles && data.profiles.length > 0) {
-      const { error } = await supabase.from('profiles').upsert(data.profiles, { onConflict: 'id' });
-      if (error) console.warn('Restore profiles notice:', error.message);
-      restoredCounts.profiles = data.profiles.length;
+    const { data: role, error: roleError } = await supabase.rpc('get_current_user_role');
+    if (roleError) {
+      console.warn('Restore auth check error:', roleError.message);
+      return { success: false, message: 'Não foi possível verificar sua permissão. Tente novamente.' };
     }
+    if (role !== 'Administrador') {
+      return { success: false, message: 'Apenas administradores podem restaurar o sistema.' };
+    }
+  } catch (err) {
+    console.error('Restore auth check exception:', err);
+    return { success: false, message: 'Não foi possível verificar sua permissão.' };
+  }
 
-    // 2. Divisions
-    if (data.divisions && data.divisions.length > 0) {
-      const { error } = await supabase.from('divisions').upsert(data.divisions, { onConflict: 'id' });
-      if (error) console.warn('Restore divisions notice:', error.message);
-      restoredCounts.divisions = data.divisions.length;
-    }
+  const failed: string[] = [];
 
-    // 3. Folders
-    if (data.folders && data.folders.length > 0) {
-      const { error } = await supabase.from('folders').upsert(data.folders, { onConflict: 'id' });
-      if (error) console.warn('Restore folders notice:', error.message);
-      restoredCounts.folders = data.folders.length;
+  const restoreTable = async (
+    table: string,
+    rows: any[] | undefined,
+    conflict: string,
+    countKey: keyof typeof restoredCounts
+  ) => {
+    if (!rows || rows.length === 0) return;
+    const { error } = await supabase.from(table).upsert(rows, { onConflict: conflict });
+    if (error) {
+      console.warn(`Restore ${table} error:`, error.message);
+      failed.push(table);
+    } else {
+      restoredCounts[countKey] = rows.length;
     }
+  };
 
-    // 4. Documents
-    if (data.documents && data.documents.length > 0) {
-      const { error } = await supabase.from('documents').upsert(data.documents, { onConflict: 'id' });
-      if (error) console.warn('Restore documents notice:', error.message);
-      restoredCounts.documents = data.documents.length;
-    }
-
-    // 5. Processes
-    if (data.processes && data.processes.length > 0) {
-      const { error } = await supabase.from('processes').upsert(data.processes, { onConflict: 'id' });
-      if (error) console.warn('Restore processes notice:', error.message);
-      restoredCounts.processes = data.processes.length;
-    }
-
-    // 6. Efetivo
-    if (data.efetivo && data.efetivo.length > 0) {
-      const { error } = await supabase.from('efetivo').upsert(data.efetivo, { onConflict: 'id' });
-      if (error) console.warn('Restore efetivo notice:', error.message);
-      restoredCounts.efetivo = data.efetivo.length;
-    }
-
-    // 7. User Settings
-    if (data.user_settings && data.user_settings.length > 0) {
-      const { error } = await supabase.from('user_settings').upsert(data.user_settings, { onConflict: 'user_id' });
-      if (error) console.warn('Restore user settings notice:', error.message);
-      restoredCounts.user_settings = data.user_settings.length;
-    }
+  try {
+    await restoreTable('profiles', data.profiles, 'id', 'profiles');
+    await restoreTable('divisions', data.divisions, 'id', 'divisions');
+    await restoreTable('folders', data.folders, 'id', 'folders');
+    await restoreTable('documents', data.documents, 'id', 'documents');
+    await restoreTable('processes', data.processes, 'id', 'processes');
+    await restoreTable('efetivo', data.efetivo, 'id', 'efetivo');
+    await restoreTable('user_settings', data.user_settings, 'user_id', 'user_settings');
 
     // Dispatch custom window event so App state can reload cleanly
     window.dispatchEvent(new CustomEvent('gpatd_system_restored', { detail: { payload, restoredCounts } }));
+
+    if (failed.length > 0) {
+      return {
+        success: false,
+        message: `Restauração parcial: falha ao gravar em ${failed.join(', ')}. Verifique suas permissões e tente novamente.`,
+        restoredCounts
+      };
+    }
 
     return {
       success: true,
@@ -383,7 +384,7 @@ export async function restoreSystemData(payload: BackupPayload): Promise<{ succe
     console.error('Error during system restoration:', err);
     return {
       success: false,
-      message: `Erro ao restaurar o sistema: ${err.message}`
+      message: 'Erro ao restaurar o sistema.'
     };
   }
 }

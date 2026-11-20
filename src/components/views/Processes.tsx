@@ -25,6 +25,7 @@ import {
   Archive
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { getSignedUrl } from '../../lib/storage';
 import { Division } from './Divisions';
 import BulkImportModal from './BulkImportModal';
 import { isSameDivision } from '../../utils/divisionUtils';
@@ -909,15 +910,14 @@ export default function Processes({
                                   </p>
                                 </div>
                               </div>
-                              <a 
-                                href={doc.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 font-bold text-[10px] uppercase tracking-wider transition-colors shrink-0"
+                              <button
+                                type="button"
+                                onClick={async () => window.open(await getSignedUrl(doc.url), '_blank')}
+                                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 font-bold text-[10px] uppercase tracking-wider transition-colors shrink-0 cursor-pointer"
                               >
                                 <Download size={14} />
                                 Download
-                              </a>
+                              </button>
                             </div>
                           ))}
                         </div>

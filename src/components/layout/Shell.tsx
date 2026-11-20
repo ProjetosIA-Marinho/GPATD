@@ -21,7 +21,8 @@ import {
   AlertCircle,
   X,
   LogOut,
-  Database
+  Database,
+  Scale
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
@@ -190,6 +191,7 @@ export default function Shell({
       { id: 'usuarios', name: 'Usuários', icon: UsersIcon },
     ] : []),
     { id: 'documentos', name: 'Documentos', icon: Files },
+    { id: 'chat-gpatd', name: 'Chat GPATD', icon: Scale },
   ];
 
   const adminNavigation = [
