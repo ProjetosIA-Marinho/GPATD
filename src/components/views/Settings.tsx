@@ -4,11 +4,12 @@ import {
   User, Bell, Shield, Settings as SettingsIcon, Save, Moon, Sun,
   Mail, Phone, Hash, Building2, CheckCircle2, Eye, EyeOff, Lock,
   Database, Upload, Download, RefreshCw, AlertTriangle, Trash2,
-  Clock, Calendar, Check, History
+  Clock, Calendar, Check, History, KeyRound
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
+import GeminiKeySettings from './GeminiKeySettings';
 import {
   getBackupSchedule,
   saveBackupSchedule,
@@ -287,6 +288,7 @@ export default function Settings({ currentUser, onProfileUpdate, onBackupRestore
     { id: 'security', icon: Shield, title: 'Segurança', desc: 'Senha e acesso' },
     { id: 'notifications', icon: Bell, title: 'Notificações', desc: 'Alertas e avisos' },
     { id: 'workspace', icon: SettingsIcon, title: 'Espaço de Trabalho', desc: 'Preferências do app' },
+    { id: 'gemini', icon: KeyRound, title: 'Chave do Gemini', desc: 'Chat GPATD' },
     ...(isAdmin ? [{ id: 'backup', icon: Database, title: 'Backup & Restauração', desc: 'Cópias e versões' }] : []),
   ];
 
@@ -551,6 +553,8 @@ export default function Settings({ currentUser, onProfileUpdate, onBackupRestore
             )}
 
             {/* BACKUP & RESTORE SECTION */}
+            {activeSection === 'gemini' && <GeminiKeySettings />}
+
             {activeSection === 'backup' && isAdmin && (
               <div className="space-y-8">
                 <div>

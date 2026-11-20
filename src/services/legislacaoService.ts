@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { getPersonalGeminiKey } from '../lib/geminiKey';
 
 export interface LegisMessage {
   role: 'user' | 'model';
@@ -39,12 +40,14 @@ export async function listLegislationSources(): Promise<LegisSource[]> {
 export async function askLegislation(message: string, history: LegisMessage[], sourceIds: string[]) {
   const { data: { session } } = await supabase.auth.getSession();
   const token = session?.access_token;
+  const personalKey = getPersonalGeminiKey();
 
   const response = await fetch('/api/legislacao-chat', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(personalKey ? { 'X-Gemini-Key': personalKey } : {}),
     },
     body: JSON.stringify({
       message,
@@ -68,5 +71,23 @@ export async function askLegislation(message: string, history: LegisMessage[], s
     const hint = hints[response.status] || raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 150);
     throw new Error(`Falha ao consultar a legislação (HTTP ${response.status}): ${hint || 'resposta vazia'}`);
   }
-  return data as { text: string; usedSources: LegisMessage['usedSources']; skipped: LegisMessage['skipped'] };
+  return data as { text: string; usedSources: LegisMessage['usedSources']; skipped: LegisMessage['skipped']; keySource?: 'pessoal' | 'institucional' };
+}
+
+/** Testa uma chave do Gemini sem gastar a cota de consultas. */
+export async function testGeminiKey(key: string): Promise<{ ok: boolean; error?: string }> {
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+  const response = await fetch('/api/legislacao-chat', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Gemini-Key': key,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ action: 'test-key' }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (response.ok && data.ok) return { ok: true };
+  return { ok: false, error: data.error || `Falha ao testar a chave (HTTP ${response.status}).` };
 }

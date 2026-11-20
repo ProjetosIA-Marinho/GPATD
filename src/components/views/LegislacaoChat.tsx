@@ -2,8 +2,9 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Send, Loader2, Scale, Library, FileText, RotateCcw, CheckSquare, Square,
-  AlertTriangle, User, Sparkles, ChevronDown, ChevronRight, Copy, Check, ShieldAlert,
+  AlertTriangle, User, Sparkles, ChevronDown, ChevronRight, Copy, Check, ShieldAlert, KeyRound,
 } from 'lucide-react';
+import { getPersonalGeminiKey } from '../../lib/geminiKey';
 import { askLegislation, listLegislationSources, LegisMessage, LegisSource } from '../../services/legislacaoService';
 
 const STORAGE_KEY = 'chat_gpatd_conversa';
@@ -119,6 +120,17 @@ export default function LegislacaoChat({ currentUser }: { currentUser: any }) {
   const [isLoading, setIsLoading] = useState(false);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const [privacyError, setPrivacyError] = useState('');
+  const [hasPersonalKey, setHasPersonalKey] = useState(!!getPersonalGeminiKey());
+
+  useEffect(() => {
+    const sync = () => setHasPersonalKey(!!getPersonalGeminiKey());
+    window.addEventListener('gpatd-gemini-key-changed', sync);
+    window.addEventListener('focus', sync);
+    return () => {
+      window.removeEventListener('gpatd-gemini-key-changed', sync);
+      window.removeEventListener('focus', sync);
+    };
+  }, []);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -298,6 +310,17 @@ export default function LegislacaoChat({ currentUser }: { currentUser: any }) {
               <p className="text-[11px] text-slate-500 dark:text-slate-400">Procedimentos e enquadramentos com base na legislação cadastrada</p>
             </div>
           </div>
+          <div className="flex items-center gap-2">
+          <span
+            title={hasPersonalKey
+              ? 'Consultas usando a sua chave pessoal do Gemini. Altere em Configurações › Chave do Gemini.'
+              : 'Consultas usando a chave institucional. Você pode cadastrar a sua em Configurações › Chave do Gemini.'}
+            className={`hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold ${hasPersonalKey
+              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300'
+              : 'bg-slate-50 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}`}
+          >
+            <KeyRound size={13} /> {hasPersonalKey ? 'Chave pessoal' : 'Chave institucional'}
+          </span>
           {messages.length > 0 && (
             <button
               onClick={() => setMessages([])}
@@ -306,6 +329,7 @@ export default function LegislacaoChat({ currentUser }: { currentUser: any }) {
               <RotateCcw size={14} /> Nova conversa
             </button>
           )}
+          </div>
         </div>
 
         <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
