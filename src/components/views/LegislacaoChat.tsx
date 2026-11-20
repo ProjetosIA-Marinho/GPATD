@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Send, Loader2, Scale, Library, FileText, RotateCcw, CheckSquare, Square,
-  AlertTriangle, User, Sparkles, ChevronDown, ChevronRight, Copy, Check,
+  AlertTriangle, User, Sparkles, ChevronDown, ChevronRight, Copy, Check, ShieldAlert,
 } from 'lucide-react';
 import { askLegislation, listLegislationSources, LegisMessage, LegisSource } from '../../services/legislacaoService';
 
@@ -14,6 +14,19 @@ const SUGGESTIONS = [
   'Um militar chegou atrasado ao expediente sem justificativa. Qual o possível enquadramento e punição?',
   'Como devo garantir o contraditório e a ampla defesa na apuração?',
 ];
+
+/* ---------- Proteção de dados pessoais ---------- */
+
+// CPF (000.000.000-00 ou 11 dígitos) e SARAM (000.000-0 ou 7 dígitos).
+const CPF_RE = /\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b/;
+const SARAM_RE = /\b\d{3}\.?\d{3}-?\d\b/;
+
+function detectPersonalData(text: string): string | null {
+  if (CPF_RE.test(text)) return 'um número que parece ser CPF';
+  if (SARAM_RE.test(text)) return 'um número que parece ser SARAM';
+  if (/\b(cpf|saram|identidade|rg)\s*(n[ºo°.]*)?\s*:?\s*\d/i.test(text)) return 'um documento de identificação';
+  return null;
+}
 
 /* ---------- Renderização de markdown simples (sem HTML injetado) ---------- */
 
@@ -105,6 +118,7 @@ export default function LegislacaoChat({ currentUser }: { currentUser: any }) {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const [privacyError, setPrivacyError] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -155,6 +169,12 @@ export default function LegislacaoChat({ currentUser }: { currentUser: any }) {
   const send = async (text?: string) => {
     const question = (text ?? input).trim();
     if (!question || isLoading) return;
+    const personal = detectPersonalData(question);
+    if (personal) {
+      setPrivacyError(`Sua pergunta contém ${personal}. Remova os dados pessoais e descreva apenas os fatos (ex.: "um 3S", "o militar").`);
+      return;
+    }
+    setPrivacyError('');
     if (selected.size === 0) {
       setMessages(prev => [...prev, { role: 'model', text: 'Selecione ao menos uma fonte no painel **Fontes** para que eu possa responder.', isError: true }]);
       return;
@@ -373,6 +393,21 @@ export default function LegislacaoChat({ currentUser }: { currentUser: any }) {
         </div>
 
         <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40">
+          <div className={`mb-3 flex items-start gap-2.5 rounded-xl border px-3.5 py-2.5 text-[12px] leading-snug ${
+            privacyError
+              ? 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900/50 dark:bg-rose-900/20 dark:text-rose-300'
+              : 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-300'
+          }`}>
+            <ShieldAlert size={16} className="mt-0.5 shrink-0" />
+            <span>
+              {privacyError || (
+                <>
+                  <strong>Não insira dados pessoais</strong> como nome, SARAM, CPF, identidade, telefone ou endereço.
+                  Descreva apenas os fatos, usando termos genéricos como "o militar" ou "um 3S".
+                </>
+              )}
+            </span>
+          </div>
           <div className="lg:hidden mb-2 text-[11px] text-slate-500">
             Fontes: {selected.size} de {sources.length} legislação(ões)
           </div>
@@ -384,6 +419,7 @@ export default function LegislacaoChat({ currentUser }: { currentUser: any }) {
               maxLength={4000}
               onChange={e => {
                 setInput(e.target.value);
+                if (privacyError) setPrivacyError('');
                 e.target.style.height = 'auto';
                 e.target.style.height = Math.min(e.target.scrollHeight, 160) + 'px';
               }}

@@ -188,6 +188,10 @@ export default async function handler(req: any, res: any) {
     if (message.length > MAX_MESSAGE_CHARS) {
       return res.status(413).json({ error: 'Pergunta muito longa.' });
     }
+    // Proteção de dados: não envia CPF/SARAM ao provedor de IA.
+    if (/\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b/.test(message) || /\b\d{3}\.?\d{3}-?\d\b/.test(message)) {
+      return res.status(400).json({ error: 'A pergunta contém um número que parece ser CPF ou SARAM. Remova os dados pessoais e descreva apenas os fatos.' });
+    }
     const safeHistory = (Array.isArray(history) ? history : [])
       .slice(-MAX_HISTORY_ITEMS)
       .filter((h: any) => h && (h.role === 'user' || h.role === 'model') && typeof h.text === 'string')
