@@ -203,6 +203,12 @@ export default async function handler(req: any, res: any) {
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) return res.status(401).json({ error: 'Sessão inválida.' });
 
+    // Chat GPATD: somente Administrador (confere o perfil no banco, não confia na tela).
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle();
+    if (profile?.role !== 'Administrador') {
+      return res.status(403).json({ error: 'O Chat GPATD está disponível apenas para administradores.' });
+    }
+
     // Teste da chave pessoal (não consome cota de geração).
     if (req.body?.action === 'test-key') {
       if (!personalKey) return res.status(400).json({ error: 'Informe uma chave para testar.' });

@@ -191,7 +191,8 @@ export default function Shell({
       { id: 'usuarios', name: 'Usuários', icon: UsersIcon },
     ] : []),
     { id: 'documentos', name: 'Documentos', icon: Files },
-    { id: 'chat-gpatd', name: 'Chat GPATD', icon: Scale },
+    // Chat GPATD: somente Administrador
+    ...(currentUser?.role === 'Administrador' ? [{ id: 'chat-gpatd', name: 'Chat GPATD', icon: Scale }] : []),
   ];
 
   const adminNavigation = [

@@ -377,7 +377,7 @@ export default function App() {
   // Redirect Apurador to processes if they land on unauthorized activeTab
   useEffect(() => {
     if (currentUser && currentUser.role === 'Apurador') {
-      const allowed = ['processos', 'novo-patd', 'documentos', 'chat-gpatd', 'settings'];
+      const allowed = ['processos', 'novo-patd', 'documentos', 'settings'];
       if (!allowed.includes(activeTab)) {
         setActiveTab('processos');
       }
@@ -658,6 +658,10 @@ export default function App() {
       case 'documentos':
         return <Documents currentUser={currentUser} />;
       case 'chat-gpatd':
+        // Chat GPATD: somente Administrador
+        if (currentUser.role !== 'Administrador') {
+          return <Dashboard processes={processes} setActiveTab={handleTabChange} onSelectProcess={handleEditProcess} globalSearchTerm={searchTerm} currentUser={currentUser} />;
+        }
         return <LegislacaoChat currentUser={currentUser} />;
       default:
         return <Dashboard processes={processes} setActiveTab={handleTabChange} onSelectProcess={handleEditProcess} globalSearchTerm={searchTerm} currentUser={currentUser} />;

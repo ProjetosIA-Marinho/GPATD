@@ -288,7 +288,7 @@ export default function Settings({ currentUser, onProfileUpdate, onBackupRestore
     { id: 'security', icon: Shield, title: 'Segurança', desc: 'Senha e acesso' },
     { id: 'notifications', icon: Bell, title: 'Notificações', desc: 'Alertas e avisos' },
     { id: 'workspace', icon: SettingsIcon, title: 'Espaço de Trabalho', desc: 'Preferências do app' },
-    { id: 'gemini', icon: KeyRound, title: 'Chave do Gemini', desc: 'Chat GPATD' },
+    ...(isAdmin ? [{ id: 'gemini', icon: KeyRound, title: 'Chave do Gemini', desc: 'Chat GPATD' }] : []),
     ...(isAdmin ? [{ id: 'backup', icon: Database, title: 'Backup & Restauração', desc: 'Cópias e versões' }] : []),
   ];
 
@@ -553,7 +553,7 @@ export default function Settings({ currentUser, onProfileUpdate, onBackupRestore
             )}
 
             {/* BACKUP & RESTORE SECTION */}
-            {activeSection === 'gemini' && <GeminiKeySettings />}
+            {activeSection === 'gemini' && isAdmin && <GeminiKeySettings />}
 
             {activeSection === 'backup' && isAdmin && (
               <div className="space-y-8">
